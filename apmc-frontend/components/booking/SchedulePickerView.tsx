@@ -230,13 +230,13 @@ export default function SchedulePickerView({
 
       {/* Office selector */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1.5">
-          Assigned Office / Department <span className="text-red-500">*</span>
+        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">
+          ASSIGNED OFFICE / DEPARTMENT <span className="text-red-500">*</span>
         </label>
         <select
           value={selectedOffice}
           onChange={(e) => onOfficeChange(e.target.value)}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white"
+          className="w-full border border-slate-300 rounded-sm px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white"
         >
           <option value="">— Select an office —</option>
           {offices.map((o) => (
@@ -247,8 +247,8 @@ export default function SchedulePickerView({
 
       {/* Calendar */}
       <div>
-        <p className="text-sm font-medium text-slate-700 mb-3">
-          Appointment Date <span className="text-red-500">*</span>
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
+          APPOINTMENT DATE <span className="text-red-500">*</span>
         </p>
 
         <div className="border border-slate-200 rounded-xl overflow-hidden">
@@ -266,8 +266,8 @@ export default function SchedulePickerView({
             >
               ‹
             </button>
-            <span className="text-sm font-semibold text-slate-900">
-              {MONTH_NAMES[calendarMonth]} {calendarYear}
+            <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">
+              {MONTH_NAMES[calendarMonth].toUpperCase()} {calendarYear}
             </span>
             <button
               onClick={nextMonth}
@@ -310,7 +310,7 @@ export default function SchedulePickerView({
                           ? 'bg-emerald-600 text-white'
                           : isDisabled
                           ? 'text-slate-300 cursor-not-allowed bg-white'
-                          : 'text-slate-800 hover:bg-emerald-50 bg-emerald-50/40 border border-emerald-100 cursor-pointer'
+                          : 'text-emerald-700 font-medium hover:bg-emerald-50 bg-emerald-50 border border-emerald-200 cursor-pointer'
                       }`}
                     >
                       <span>{cell.day}</span>
@@ -345,12 +345,15 @@ export default function SchedulePickerView({
       {/* Time slot grid */}
       {selectedDate && (
         <div>
-          <p className="text-sm font-medium text-slate-700 mb-1">
-            Time Slot <span className="text-red-500">*</span>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
+            TIME SLOT <span className="text-red-500">*</span>
           </p>
           <p className="text-xs text-slate-500 mb-3">
             Each slot is 30 minutes. Maximum 2 patients per interval.
           </p>
+          <div className="border-l-4 border-slate-400 bg-slate-50 px-4 py-3 text-sm text-slate-600 mb-3">
+            Slots are limited to <strong>2 patients per 30-minute interval</strong>. Select an available time slot below.
+          </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {SLOTS.map((slot, idx) => {
               const isFull = fullSlotIndices.has(idx);
@@ -361,12 +364,12 @@ export default function SchedulePickerView({
                   key={slot}
                   onClick={() => !isFull && onSlotChange(slot)}
                   disabled={isFull}
-                  className={`px-3 py-2.5 rounded-lg border text-sm font-medium transition-colors text-center ${
+                  className={`px-3 py-2.5 rounded-sm border text-sm font-medium transition-colors text-center ${
                     isSelected
                       ? 'bg-emerald-600 text-white border-emerald-600'
                       : isFull
                       ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
-                      : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 cursor-pointer'
+                      : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-600 hover:bg-emerald-50 cursor-pointer'
                   }`}
                 >
                   <span className="block">{formatSlotLabel(slot)}</span>
@@ -384,14 +387,14 @@ export default function SchedulePickerView({
       <div className="flex items-center justify-between pt-4 border-t border-slate-100">
         <button
           onClick={onBack}
-          className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
+          className="px-5 py-2.5 rounded-sm text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
         >
           ← Back
         </button>
         <button
           onClick={onNext}
           disabled={!canProceed}
-          className={`px-6 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm ${
+          className={`px-6 py-2.5 rounded-sm font-medium text-sm transition-colors shadow-sm ${
             canProceed
               ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
               : 'bg-slate-200 text-slate-400 cursor-not-allowed'

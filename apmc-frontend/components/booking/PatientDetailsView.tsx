@@ -15,9 +15,9 @@ interface PatientDetailsViewProps {
 }
 
 const inputClass =
-  'w-full border border-slate-300 rounded-lg px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white';
+  'w-full border border-slate-300 rounded-sm px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white';
 
-const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+const labelClass = 'block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5';
 
 function RequiredMark() {
   return <span className="text-red-500"> *</span>;
@@ -331,7 +331,7 @@ function FormFooter({
       <button
         type="button"
         onClick={onBack}
-        className="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
+        className="px-5 py-2.5 rounded-sm text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
       >
         ← Back
       </button>
@@ -339,9 +339,9 @@ function FormFooter({
         type="button"
         onClick={onNext}
         disabled={!isValid}
-        className={`px-6 py-2.5 rounded-xl font-medium text-sm transition-colors shadow-sm ${
+        className={`px-6 py-2.5 rounded-sm font-semibold text-sm tracking-wide uppercase transition-colors shadow-sm ${
           isValid
-            ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
+            ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer'
             : 'bg-slate-200 text-slate-400 cursor-not-allowed'
         }`}
       >
@@ -373,12 +373,15 @@ export default function PatientDetailsView({ category, onNext, onBack }: Patient
       </div>
 
       {/* Info callout */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-        <p className="font-semibold mb-0.5">ℹ️ Important</p>
-        <p>
-          Please provide accurate details. This information will be used for your clinical intake and queue
-          assignment.
-        </p>
+      <div className="border-l-4 border-emerald-600 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <p className="font-semibold mb-0.5">ℹ Important</p>
+        <p>Please provide accurate details. This information will be used for your clinical intake and queue assignment.</p>
+      </div>
+
+      {/* Formal intake form header */}
+      <div className="border-b-2 border-slate-200 pb-3">
+        <p className="text-xs font-bold uppercase tracking-widest text-slate-500">PATIENT INTAKE FORM</p>
+        <p className="text-xs text-slate-400 mt-1">Fields marked with (*) are required</p>
       </div>
 
       {/* Conditional forms */}

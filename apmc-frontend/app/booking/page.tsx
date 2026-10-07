@@ -76,19 +76,29 @@ export default function BookingPage() {
       <Header />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">OPD Appointment Booking</h1>
+        {/* Page title breadcrumb */}
+        <div className="mb-6 border-b border-slate-200 pb-4">
+          <nav className="text-xs text-slate-400 mb-1">
+            <span>Home</span>
+            <span className="mx-1.5">›</span>
+            <span className="text-slate-600 font-medium">Appointment Booking</span>
+          </nav>
+          <h1 className="text-2xl font-bold text-slate-900">OPD Appointment System</h1>
           <p className="text-sm text-slate-500 mt-1">
             Complete all steps to secure your digital queue pass for the Outpatient Department.
           </p>
         </div>
 
-        {/* Two-column layout */}
+        {/* Two-column layout: sidebar LEFT (1/3), content RIGHT (2/3) */}
         <div className="flex flex-col lg:grid lg:grid-cols-3 lg:gap-8 gap-6">
-          {/* Content column */}
+          {/* Sidebar column — LEFT */}
+          <div className="lg:col-span-1 order-first lg:sticky lg:top-24 h-fit">
+            <BookingSidebarTracker currentStep={currentStep} />
+          </div>
+
+          {/* Content column — RIGHT */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
+            <div className="bg-white rounded-sm border border-slate-200 shadow-sm p-6 md:p-8">
               {currentStep === 1 && (
                 <CategorySelector
                   selectedCategory={selectedCategory}
@@ -131,11 +141,6 @@ export default function BookingPage() {
                 />
               )}
             </div>
-          </div>
-
-          {/* Sidebar column */}
-          <div className="lg:col-span-1">
-            <BookingSidebarTracker currentStep={currentStep} />
           </div>
         </div>
       </main>
