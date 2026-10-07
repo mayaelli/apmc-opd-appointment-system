@@ -15,12 +15,12 @@ interface PatientDetailsViewProps {
 }
 
 const inputClass =
-  'w-full border border-slate-300 rounded-sm px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white';
+  'w-full border-2 border-slate-300 rounded-sm px-4 py-3 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 focus:outline-none bg-white';
 
-const labelClass = 'block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5';
+const labelClass = 'block uppercase tracking-widest text-xs text-slate-500 font-semibold mb-1.5';
 
 function RequiredMark() {
-  return <span className="text-red-500"> *</span>;
+  return <span className="text-red-600 font-bold"> *</span>;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -327,11 +327,11 @@ function FormFooter({
   isValid: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+    <div className="flex items-center justify-between border-t-2 border-slate-200 pt-6 mt-8">
       <button
         type="button"
         onClick={onBack}
-        className="px-5 py-2.5 rounded-sm text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
+        className="px-5 py-3 rounded-sm text-sm font-bold uppercase tracking-wide text-slate-700 border-2 border-slate-300 hover:bg-slate-50 transition-colors"
       >
         ← Back
       </button>
@@ -339,10 +339,10 @@ function FormFooter({
         type="button"
         onClick={onNext}
         disabled={!isValid}
-        className={`px-6 py-2.5 rounded-sm font-semibold text-sm tracking-wide uppercase transition-colors shadow-sm ${
+        className={`px-8 py-3 rounded-sm font-bold text-sm tracking-wide uppercase transition-colors shadow-sm ${
           isValid
             ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer'
-            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+            : 'bg-slate-300 text-slate-400 cursor-not-allowed'
         }`}
       >
         Next: Review Ticket
@@ -366,22 +366,23 @@ export default function PatientDetailsView({ category, onNext, onBack }: Patient
     <div className="space-y-6">
       {/* Section header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Patient Details</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Intake form for: <span className="font-medium text-slate-700">{categoryLabel}</span>
+        <p className="text-xs uppercase tracking-widest text-slate-400">Step 3: Patient Details</p>
+        <h2 className="text-xl font-bold text-slate-900 mt-1">Provide Your Information</h2>
+        <p className="text-sm text-slate-600 mt-2">
+          Intake Form for: <span className="inline-block bg-emerald-700 text-white uppercase text-xs font-bold px-3 py-1.5 rounded-sm ml-1">{categoryLabel}</span>
         </p>
       </div>
 
       {/* Info callout */}
-      <div className="border-l-4 border-emerald-600 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+      <div className="border-l-4 border-emerald-600 bg-emerald-50 p-4 text-sm text-emerald-800">
         <p className="font-semibold mb-0.5">ℹ Important</p>
         <p>Please provide accurate details. This information will be used for your clinical intake and queue assignment.</p>
       </div>
 
       {/* Formal intake form header */}
       <div className="border-b-2 border-slate-200 pb-3">
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-500">PATIENT INTAKE FORM</p>
-        <p className="text-xs text-slate-400 mt-1">Fields marked with (*) are required</p>
+        <p className="uppercase tracking-widest text-xs text-slate-500 font-bold">PATIENT INTAKE FORM</p>
+        <p className="text-xs text-slate-400 mt-0.5">Fields marked with (*) are required</p>
       </div>
 
       {/* Conditional forms */}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Image from 'next/image';
 import { AppointmentCategory } from '@/app/types/appointment';
 
 interface AppointmentTicketViewProps {
@@ -47,9 +48,9 @@ function formatTimeRange(slot: string): string {
 
 function TicketRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-3 border-b border-slate-100 last:border-0">
-      <span className="text-xs font-bold uppercase tracking-widest text-slate-400 sm:w-40 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-slate-900">{value}</span>
+    <div className="flex py-3 border-b border-slate-100 last:border-0">
+      <span className="uppercase tracking-widest text-xs text-slate-400 font-semibold w-44 shrink-0">{label}</span>
+      <span className="text-sm font-semibold text-slate-900">{value}</span>
     </div>
   );
 }
@@ -68,30 +69,41 @@ export default function AppointmentTicketView({
   const categoryLabel = CATEGORY_LABELS[category];
 
   return (
-    <div className="max-w-lg mx-auto w-full space-y-4">
+    <div className="max-w-2xl mx-auto w-full space-y-4">
       {/* Ticket card */}
-      <div className="bg-white rounded-sm border border-slate-200 shadow-sm overflow-hidden">
+      <div className="border-4 border-slate-300 rounded-sm shadow-2xl overflow-hidden">
         {/* Header band */}
-        <div className="bg-emerald-700 px-6 py-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-bold text-white leading-tight uppercase tracking-wide">
-              APMC Outpatient Department
-            </h2>
-            <p className="text-emerald-200 text-sm mt-0.5">Official Appointment Ticket</p>
+        <div className="bg-slate-900 px-6 py-6 border-b-4 border-emerald-600 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Image
+              src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
+              alt="Amai Pakpak Medical Center seal"
+              width={48}
+              height={48}
+              className="object-contain shrink-0"
+            />
+            <div>
+              <h2 className="text-lg font-bold text-white leading-tight uppercase tracking-wide">
+                AMAI PAKPAK MEDICAL CENTER
+              </h2>
+              <p className="text-slate-300 text-xs mt-0.5">Outpatient Department</p>
+            </div>
           </div>
-          <span className="shrink-0 border border-white text-white text-xs font-bold px-3 py-1 rounded-sm mt-1 tracking-widest uppercase">
+          <span className="shrink-0 border-2 border-white text-white text-xs font-bold px-4 py-2 rounded-sm tracking-widest uppercase">
             CONFIRMED
           </span>
         </div>
 
-        {/* Ticket body */}
-        <div className="px-6 py-2">
-          {/* Queue ID — prominent row */}
-          <div className="py-4 border-b border-slate-100 bg-emerald-50 -mx-6 px-6">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Queue ID</p>
-            <p className="font-mono text-2xl font-bold text-emerald-700 tracking-widest">{queueId}</p>
-          </div>
+        {/* Queue ID section */}
+        <div className="bg-emerald-600 px-6 py-6 border-b-2 border-emerald-700">
+          <p className="uppercase tracking-widest text-xs text-emerald-200 font-bold mb-2">
+            QUEUE IDENTIFICATION NUMBER
+          </p>
+          <div className="text-4xl font-mono font-black text-white tracking-widest">{queueId}</div>
+        </div>
 
+        {/* Patient details rows */}
+        <div className="bg-white px-6 py-2">
           <TicketRow label="Patient Name" value={patientName} />
           <TicketRow label="Consultation Type" value={categoryLabel} />
           <TicketRow label="Assigned Office" value={office} />
@@ -99,12 +111,14 @@ export default function AppointmentTicketView({
           <TicketRow label="Time Slot" value={formattedTime} />
         </div>
 
-        {/* Warning & instructions */}
-        <div className="px-6 pb-5 space-y-3 mt-2">
-          {/* Amber warning — left accent */}
-          <div className="border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <p className="font-bold mb-1">⚠ IMPORTANT</p>
-            <p>
+        {/* Operational warnings */}
+        <div className="px-6 py-6 space-y-4">
+          {/* Amber warning */}
+          <div className="border-l-[6px] border-amber-500 bg-amber-50 p-5 rounded-sm">
+            <p className="uppercase tracking-wide text-xs text-amber-900 font-bold mb-2">
+              ⚠ MANDATORY ARRIVAL POLICY
+            </p>
+            <p className="text-sm text-amber-800 leading-relaxed">
               Arrive <strong>30 minutes before</strong> your scheduled time for verification. Failure to arrive
               on time will result in slot forfeiture. Ongoing queues cannot be disrupted — missed slots require
               rebooking.
@@ -112,17 +126,17 @@ export default function AppointmentTicketView({
           </div>
 
           {/* Screenshot note */}
-          <div className="flex items-start gap-2 text-sm text-slate-600">
+          <div className="bg-slate-700 text-slate-50 p-4 rounded-sm text-sm flex items-start gap-2">
             <span className="text-base leading-snug shrink-0">📷</span>
-            <span>Please <strong>screenshot or save</strong> this ticket. No SMS confirmation will be sent.</span>
+            <span>Screenshot or save this ticket for your records. No SMS confirmation will be sent.</span>
           </div>
         </div>
       </div>
 
-      {/* Action */}
+      {/* Footer action */}
       <button
         onClick={onReset}
-        className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm py-3 rounded-sm transition-colors shadow-sm tracking-wide uppercase"
+        className="w-full bg-emerald-700 hover:bg-emerald-800 text-white uppercase font-bold tracking-wide py-4 text-sm rounded-sm transition-colors shadow-sm"
       >
         Book Another Appointment
       </button>

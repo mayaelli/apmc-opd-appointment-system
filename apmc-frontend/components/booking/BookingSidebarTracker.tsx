@@ -1,4 +1,5 @@
 // components/booking/BookingSidebarTracker.tsx
+import Image from 'next/image';
 
 interface BookingSidebarTrackerProps {
   currentStep: number;
@@ -13,17 +14,19 @@ const steps = [
 
 export default function BookingSidebarTracker({ currentStep }: BookingSidebarTrackerProps) {
   return (
-    <aside className="w-full bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-      {/* Branding header */}
-      <div className="bg-emerald-700 px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-white text-emerald-700 font-bold h-9 w-9 rounded-sm flex items-center justify-center text-sm shrink-0">
-            AP
-          </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">APMC OPD</p>
-            <p className="text-emerald-200 text-xs">Outpatient Department</p>
-          </div>
+    <aside className="w-full bg-white rounded-sm border border-slate-300 shadow-md overflow-hidden">
+      {/* Header band */}
+      <div className="bg-slate-900 py-4 px-5 border-b-4 border-emerald-600 flex items-center gap-3">
+        <Image
+          src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
+          alt="Amai Pakpak Medical Center seal"
+          width={32}
+          height={32}
+          className="object-contain shrink-0"
+        />
+        <div>
+          <p className="text-white font-bold text-sm leading-tight">APMC OPD</p>
+          <p className="text-slate-300 text-xs">Appointment Progress</p>
         </div>
       </div>
 
@@ -39,7 +42,7 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
                 key={step.id}
                 className={`flex items-start gap-3 px-5 py-4 ${
                   isCurrent
-                    ? 'bg-emerald-700'
+                    ? 'bg-emerald-600'
                     : isCompleted
                     ? 'bg-emerald-50'
                     : 'bg-white'
@@ -51,10 +54,10 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
                 <div
                   className={`shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold mt-0.5 ${
                     isCurrent
-                      ? 'bg-white text-emerald-700'
+                      ? 'bg-white text-emerald-600'
                       : isCompleted
                       ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-100 text-slate-400'
+                      : 'bg-slate-200 text-slate-500'
                   }`}
                 >
                   {isCompleted ? '✓' : step.id}
@@ -67,7 +70,7 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
                         ? 'text-white'
                         : isCompleted
                         ? 'text-emerald-700'
-                        : 'text-slate-400'
+                        : 'text-slate-500'
                     }`}
                   >
                     {step.name}
@@ -90,10 +93,10 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
         </ol>
       </nav>
 
-      {/* Amber reminder */}
-      <div className="mx-4 my-4 border-l-4 border-amber-400 bg-amber-50 px-4 py-3 text-xs text-amber-800 space-y-1">
+      {/* Bottom reminder block */}
+      <div className="mx-4 mb-4 border-l-4 border-amber-500 bg-amber-50 px-4 py-3 text-xs text-amber-800">
         <p className="font-semibold">⚠ Reminder</p>
-        <p>Slots are strictly limited to 2 per 30-minute window. Arrive 30 minutes early for verification.</p>
+        <p className="mt-1">Slots are strictly limited to 2 per 30-minute window. Arrive 30 minutes early for verification.</p>
       </div>
     </aside>
   );

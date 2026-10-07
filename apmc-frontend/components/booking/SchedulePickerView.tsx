@@ -16,11 +16,15 @@ interface SchedulePickerViewProps {
 }
 
 const ALL_OFFICES = [
-  'OPD Room 1 – General Medicine',
-  'OPD Room 2 – Internal Medicine',
-  'OPD Room 3 – Pediatrics',
-  'OPD Room 4 – OB-GYN',
-  'OPD Room 5 – Surgery',
+  'Obstetrics & Gynecology (OB-GYNE)',
+  'Pediatrics (Pedia)',
+  'General Surgery',
+  'Orthopedics (Ortho)',
+  'Family Medicine',
+  'Adult Medicine / Internal Medicine',
+  'Dermatology (Derma)',
+  'Ophthalmology (Optha / Eye Clinic)',
+  'ENT (Ear, Nose, Throat)',
 ];
 
 const PHILHEALTH_OFFICE = 'PhilHealth Yakap Clinic';
@@ -222,21 +226,19 @@ export default function SchedulePickerView({
     <div className="space-y-8">
       {/* Section header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Office & Schedule</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Select your assigned office, preferred date, and a 30-minute time slot.
-        </p>
+        <p className="text-xs uppercase tracking-widest text-slate-400">Step 2: Office & Schedule</p>
+        <h2 className="text-xl font-bold text-slate-900 mt-1">Select Department, Date, and Time Slot</h2>
       </div>
 
       {/* Office selector */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">
-          ASSIGNED OFFICE / DEPARTMENT <span className="text-red-500">*</span>
+        <label className="block uppercase tracking-widest text-xs text-slate-500 font-semibold mb-2">
+          ASSIGNED OFFICE / DEPARTMENT <span className="text-red-600 font-bold">*</span>
         </label>
         <select
           value={selectedOffice}
           onChange={(e) => onOfficeChange(e.target.value)}
-          className="w-full border border-slate-300 rounded-sm px-3 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none bg-white"
+          className="w-full border-2 border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 rounded-sm px-4 py-3 text-sm font-medium text-slate-900 bg-white focus:outline-none"
         >
           <option value="">— Select an office —</option>
           {offices.map((o) => (
@@ -247,41 +249,41 @@ export default function SchedulePickerView({
 
       {/* Calendar */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
-          APPOINTMENT DATE <span className="text-red-500">*</span>
+        <p className="uppercase tracking-widest text-xs text-slate-500 font-semibold mb-3">
+          APPOINTMENT DATE <span className="text-red-600 font-bold">*</span>
         </p>
 
-        <div className="border border-slate-200 rounded-xl overflow-hidden">
+        <div className="border-2 border-slate-300 rounded-sm overflow-hidden">
           {/* Month navigation */}
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+          <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b-2 border-emerald-600">
             <button
               onClick={prevMonth}
               disabled={!canGoBack}
               aria-label="Previous month"
-              className={`h-8 w-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors ${
+              className={`h-8 w-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
                 canGoBack
-                  ? 'text-slate-700 hover:bg-slate-200'
-                  : 'text-slate-300 cursor-not-allowed'
+                  ? 'text-white hover:text-emerald-400'
+                  : 'text-slate-500 cursor-not-allowed'
               }`}
             >
               ‹
             </button>
-            <span className="text-sm font-bold text-slate-900 uppercase tracking-widest">
-              {MONTH_NAMES[calendarMonth].toUpperCase()} {calendarYear}
+            <span className="text-sm font-bold text-white uppercase tracking-wide">
+              {MONTH_NAMES[calendarMonth]} {calendarYear}
             </span>
             <button
               onClick={nextMonth}
               aria-label="Next month"
-              className="h-8 w-8 rounded-lg flex items-center justify-center text-sm font-medium text-slate-700 hover:bg-slate-200 transition-colors"
+              className="h-8 w-8 rounded flex items-center justify-center text-sm font-medium text-white hover:text-emerald-400 transition-colors"
             >
               ›
             </button>
           </div>
 
           {/* Day column headers */}
-          <div className="grid grid-cols-5 border-b border-slate-200">
+          <div className="grid grid-cols-5 bg-slate-700">
             {DAY_LABELS.map((d) => (
-              <div key={d} className="py-2 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              <div key={d} className="py-2 text-center text-xs font-bold text-white uppercase tracking-widest">
                 {d}
               </div>
             ))}
@@ -305,18 +307,18 @@ export default function SchedulePickerView({
                       onClick={() => handleDateClick(cell.dateStr, cell.isPast, cell.isHoliday)}
                       disabled={isDisabled}
                       title={cell.isHoliday ? 'Public Holiday' : undefined}
-                      className={`relative py-3 text-sm font-medium transition-colors flex flex-col items-center justify-center gap-0.5 ${
+                      className={`relative py-3 text-sm font-semibold transition-colors flex flex-col items-center justify-center gap-0.5 ${
                         isSelected
-                          ? 'bg-emerald-600 text-white'
+                          ? 'bg-emerald-600 text-white font-bold'
                           : isDisabled
-                          ? 'text-slate-300 cursor-not-allowed bg-white'
-                          : 'text-emerald-700 font-medium hover:bg-emerald-50 bg-emerald-50 border border-emerald-200 cursor-pointer'
+                          ? 'text-slate-300 cursor-not-allowed bg-slate-100'
+                          : 'text-emerald-700 font-semibold bg-white hover:bg-emerald-50 border border-emerald-200 cursor-pointer'
                       }`}
                     >
                       <span>{cell.day}</span>
                       {cell.isHoliday && (
                         <span
-                          className={`h-1.5 w-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-red-500'}`}
+                          className={`h-1 w-1 rounded-full ${isSelected ? 'bg-white' : 'bg-red-500'} mx-auto mt-0.5`}
                           aria-label="Holiday"
                         />
                       )}
@@ -326,35 +328,36 @@ export default function SchedulePickerView({
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-5 mt-2 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-emerald-600" /> Selected
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500" /> Holiday
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded bg-slate-100" /> Unavailable
-          </span>
+          {/* Legend */}
+          <div className="flex items-center gap-5 bg-slate-50 px-4 py-2 border-t border-slate-200 text-xs text-slate-600">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded bg-emerald-600" /> Selected
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-1 w-1 rounded-full bg-red-500" /> Holiday
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded bg-slate-100" /> Unavailable
+            </span>
+          </div>
         </div>
       </div>
+
+      {/* Slot limit callout */}
+      {selectedDate && (
+        <div className="border-l-4 border-slate-500 bg-slate-50 p-4 text-sm text-slate-700 font-medium">
+          ⚠ Slots are strictly limited to 2 patients per 30-minute interval. Fully booked slots cannot be selected.
+        </div>
+      )}
 
       {/* Time slot grid */}
       {selectedDate && (
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">
-            TIME SLOT <span className="text-red-500">*</span>
+          <p className="uppercase tracking-widest text-xs text-slate-500 font-semibold mb-3">
+            TIME SLOT <span className="text-red-600 font-bold">*</span>
           </p>
-          <p className="text-xs text-slate-500 mb-3">
-            Each slot is 30 minutes. Maximum 2 patients per interval.
-          </p>
-          <div className="border-l-4 border-slate-400 bg-slate-50 px-4 py-3 text-sm text-slate-600 mb-3">
-            Slots are limited to <strong>2 patients per 30-minute interval</strong>. Select an available time slot below.
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {SLOTS.map((slot, idx) => {
               const isFull = fullSlotIndices.has(idx);
               const isSelected = selectedSlot === slot;
@@ -364,16 +367,16 @@ export default function SchedulePickerView({
                   key={slot}
                   onClick={() => !isFull && onSlotChange(slot)}
                   disabled={isFull}
-                  className={`px-3 py-2.5 rounded-sm border text-sm font-medium transition-colors text-center ${
+                  className={`px-3 py-2.5 rounded-sm border-2 text-sm font-semibold transition-colors text-center ${
                     isSelected
-                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
                       : isFull
-                      ? 'bg-slate-50 text-slate-300 border-slate-200 cursor-not-allowed'
-                      : 'bg-white text-slate-700 border-slate-300 hover:border-emerald-600 hover:bg-emerald-50 cursor-pointer'
+                      ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
+                      : 'bg-white text-slate-900 border-slate-300 hover:border-emerald-600 hover:bg-emerald-50 cursor-pointer'
                   }`}
                 >
-                  <span className="block">{formatSlotLabel(slot)}</span>
-                  <span className={`text-xs ${isSelected ? 'text-emerald-100' : isFull ? 'text-slate-300' : 'text-slate-400'}`}>
+                  <span className="block font-bold">{formatSlotLabel(slot)}</span>
+                  <span className={`text-xs mt-0.5 ${isSelected ? 'text-emerald-100' : isFull ? 'text-slate-300' : 'text-slate-500'}`}>
                     {isFull ? 'Full' : '2/2 avail'}
                   </span>
                 </button>
@@ -384,20 +387,20 @@ export default function SchedulePickerView({
       )}
 
       {/* Footer nav */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+      <div className="border-t-2 border-slate-200 pt-6 mt-8 flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-5 py-2.5 rounded-sm text-sm font-medium text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors"
+          className="px-5 py-3 rounded-sm text-sm font-bold text-slate-700 border-2 border-slate-300 hover:bg-slate-50 transition-colors uppercase tracking-wide"
         >
           ← Back
         </button>
         <button
           onClick={onNext}
           disabled={!canProceed}
-          className={`px-6 py-2.5 rounded-sm font-medium text-sm transition-colors shadow-sm ${
+          className={`px-8 py-3 rounded-sm font-bold text-sm uppercase tracking-wide transition-colors shadow-sm ${
             canProceed
-              ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer'
+              : 'bg-slate-300 text-slate-400 cursor-not-allowed'
           }`}
         >
           Next: Patient Details

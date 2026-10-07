@@ -35,14 +35,19 @@ export default function CategorySelector({
 }: CategorySelectorProps) {
   return (
     <div className="space-y-6">
+      {/* Section header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-900">Select Consultation Type</h2>
-        <p className="text-sm text-slate-500 mt-1">
-          Each category manages its own schedule availability and intake flow.
-        </p>
+        <p className="text-xs uppercase tracking-widest text-slate-400">Step 1: Select Consultation Type</p>
+        <h2 className="text-xl font-bold text-slate-900 mt-1">Choose Your Visit Category</h2>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      {/* Info callout */}
+      <div className="border-l-4 border-blue-500 bg-blue-50 p-4 text-sm text-blue-800 mb-6">
+        Each category maintains independent scheduling and intake requirements.
+      </div>
+
+      {/* Category cards */}
+      <div className="grid grid-cols-1 gap-4">
         {categories.map((cat) => {
           const isSelected = selectedCategory === cat.id;
           return (
@@ -52,23 +57,23 @@ export default function CategorySelector({
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && onSelectCategory(cat.id)}
-              className={`p-5 border transition-all cursor-pointer flex flex-col justify-between rounded-sm ${
+              className={`p-5 transition-all cursor-pointer rounded-sm ${
                 isSelected
-                  ? 'border-l-4 border-emerald-600 bg-emerald-50 ring-1 ring-inset ring-emerald-200'
-                  : 'border border-slate-200 bg-white hover:bg-slate-50'
+                  ? 'bg-emerald-50 border-2 border-emerald-600 ring-2 ring-emerald-600/20'
+                  : 'bg-white border-2 border-slate-300 hover:border-slate-400 hover:bg-slate-50'
               }`}
             >
               <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-xs font-bold px-2.5 py-1 bg-emerald-700 text-white uppercase tracking-widest inline-block mb-2">
+                <div className="flex-1">
+                  <span className="inline-block bg-emerald-700 text-white text-xs uppercase font-bold px-3 py-1 rounded-sm mb-3">
                     {cat.badge}
                   </span>
-                  <h3 className="text-base font-semibold text-slate-900">{cat.title}</h3>
+                  <h3 className="text-base font-bold text-slate-900">{cat.title}</h3>
                   <p className="text-sm text-slate-600 mt-1">{cat.description}</p>
                 </div>
                 <div
-                  className={`h-5 w-5 rounded-full border-2 flex items-center justify-center mt-1 shrink-0 ${
-                    isSelected ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300 bg-white'
+                  className={`h-6 w-6 rounded-full flex items-center justify-center ml-4 shrink-0 ${
+                    isSelected ? 'bg-emerald-600 text-white' : 'border-2 border-slate-300 bg-white'
                   }`}
                 >
                   {isSelected && <span className="text-xs leading-none">✓</span>}
@@ -79,14 +84,15 @@ export default function CategorySelector({
         })}
       </div>
 
-      <div className="flex justify-end pt-4">
+      {/* Footer */}
+      <div className="border-t-2 border-slate-200 pt-6 mt-6 flex justify-end">
         <button
           onClick={onNext}
           disabled={!selectedCategory}
-          className={`px-6 py-2.5 font-semibold text-sm tracking-wide uppercase transition-colors shadow-sm rounded-sm ${
+          className={`px-8 py-3 font-bold text-sm tracking-wide uppercase transition-colors shadow-sm rounded-sm ${
             selectedCategory
               ? 'bg-emerald-700 hover:bg-emerald-800 text-white cursor-pointer'
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              : 'bg-slate-300 text-slate-400 cursor-not-allowed'
           }`}
         >
           Next: Schedule &amp; Office

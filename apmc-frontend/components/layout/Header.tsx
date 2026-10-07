@@ -1,29 +1,47 @@
 // components/layout/Header.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Header() {
   return (
-    <header className="bg-white border-b border-slate-300 sticky top-0 z-50">
-      {/* Top accent bar */}
-      <div className="h-[3px] w-full bg-emerald-700" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center space-x-3">
-          <div className="bg-emerald-700 text-white font-bold h-10 w-10 rounded-sm flex items-center justify-center shadow-sm text-sm tracking-wide">
-            AP
-          </div>
-          <div className="flex items-center">
-            <div>
-              <span className="font-bold text-slate-900 block leading-tight text-sm">APMC OPD</span>
-              <span className="text-xs text-slate-500">Outpatient Department System</span>
+    <header className="sticky top-0 z-50">
+      {/* Emergency notification strip */}
+      <div className="h-8 bg-slate-800 flex items-center justify-center">
+        <p className="text-xs text-amber-400 text-center px-4">
+          ⚠ For urgent medical emergencies, proceed directly to the Emergency Room or dial 911.
+        </p>
+      </div>
+
+      {/* Main header band */}
+      <div className="bg-slate-900 border-b-[3px] border-emerald-600">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          {/* Logo area */}
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
+              alt="Amai Pakpak Medical Center seal"
+              width={40}
+              height={40}
+              className="object-contain"
+              priority
+            />
+            <div className="flex flex-col">
+              <span className="font-bold text-white text-base leading-tight">APMC Outpatient Department</span>
+              <span className="text-xs text-slate-300">Amai Pakpak Medical Center</span>
             </div>
-            <div className="hidden sm:block mx-4 h-8 w-px bg-slate-200" />
-            <div className="hidden sm:block">
-              <span className="text-xs text-slate-400">Republic of the Philippines</span>
+          </Link>
+
+          {/* Right side badges */}
+          <div className="flex items-center gap-3">
+            <div className="border border-white text-white text-xs px-3 py-1 rounded-sm">
+              Official Portal
+            </div>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-slate-300">
+              <span>|</span>
+              <span>🇵🇭</span>
+              <span>Republic of the Philippines</span>
             </div>
           </div>
-        </Link>
-        <div className="text-xs font-semibold text-white bg-emerald-700 px-3 py-1.5 rounded-sm tracking-wide">
-          Official Portal
         </div>
       </div>
     </header>
