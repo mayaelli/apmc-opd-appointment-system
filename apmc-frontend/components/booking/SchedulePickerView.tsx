@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AppointmentCategory } from '@/app/types/appointment';
 
 interface SchedulePickerViewProps {
@@ -78,6 +78,33 @@ function formatSlotLabel(slot: string): string {
   return `${displayH}:${String(m).padStart(2, '0')} ${period}`;
 }
 
+// Convert slot time (HH:MM) to full range format (HH:MM AM/PM - HH:MM AM/PM)
+function convertToFullSlotFormat(slot: string): string {
+  const [hStr, mStr] = slot.split(':');
+  let startH = parseInt(hStr, 10);
+  let startM = parseInt(mStr, 10);
+  
+  // Calculate end time (30 minutes later)
+  let endH = startH;
+  let endM = startM + 30;
+  if (endM >= 60) {
+    endM -= 60;
+    endH += 1;
+  }
+  
+  // Format start time
+  const startPeriod = startH < 12 ? 'AM' : 'PM';
+  const startDisplayH = startH > 12 ? startH - 12 : startH === 0 ? 12 : startH;
+  const startFormatted = `${String(startDisplayH).padStart(2, '0')}:${String(startM).padStart(2, '0')} ${startPeriod}`;
+  
+  // Format end time
+  const endPeriod = endH < 12 ? 'AM' : 'PM';
+  const endDisplayH = endH > 12 ? endH - 12 : endH === 0 ? 12 : endH;
+  const endFormatted = `${String(endDisplayH).padStart(2, '0')}:${String(endM).padStart(2, '0')} ${endPeriod}`;
+  
+  return `${startFormatted} - ${endFormatted}`;
+}
+
 function getFullSlotIndices(dateStr: string): Set<number> {
   if (!dateStr) return new Set();
   let hash = 0;
@@ -125,11 +152,47 @@ export default function SchedulePickerView({
 
   const [calendarYear, setCalendarYear] = useState<number>(today.getFullYear());
   const [calendarMonth, setCalendarMonth] = useState<number>(today.getMonth());
+  const [slotAvailability, setSlotAvailability] = useState<Record<string, number>>({});
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   const offices = useMemo(() => {
     if (category === 'philhealth-yakap') return [PHILHEALTH_OFFICE];
     return ALL_OFFICES;
   }, [category]);
+
+  // Fetch real slot availability from API when office and date are selected
+  useEffect(() => {
+    if (!selectedOffice || !selectedDate) {
+      setSlotAvailability({});
+      return;
+    }
+
+    const fetchSlots = async () => {
+      setLoadingSlots(true);
+      try {
+        const response = await fetch(
+          `/api/slots?office=${encodeURIComponent(selectedOffice)}&date=${selectedDate}`
+        );
+        const data = await response.json();
+        
+        if (data.success && data.slots) {
+          // Convert slots array to availability map
+          const availability: Record<string, number> = {};
+          data.slots.forEach((slot: { slot: string; bookedCount: number }) => {
+            availability[slot.slot] = slot.bookedCount;
+          });
+          setSlotAvailability(availability);
+        }
+      } catch (error) {
+        console.error('Error fetching slots:', error);
+        setSlotAvailability({});
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    fetchSlots();
+  }, [selectedOffice, selectedDate]);
 
   // Build calendar grid: array of {day, dateStr, isWeekday, isPast, isHoliday, isToday}
   const calendarData = useMemo(() => {
@@ -357,17 +420,25 @@ export default function SchedulePickerView({
           <p className="uppercase tracking-widest text-xs text-slate-500 font-semibold mb-3">
             TIME SLOT <span className="text-red-600 font-bold">*</span>
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-            {SLOTS.map((slot, idx) => {
-              const isFull = fullSlotIndices.has(idx);
-              const isSelected = selectedSlot === slot;
+          {loadingSlots ? (
+            <div className="text-center py-8 text-slate-500">
+              <div className="animate-spin h-8 w-8 border-4 border-slate-300 border-t-emerald-600 rounded-full mx-auto mb-2"></div>
+              <p className="text-sm">Loading available slots...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {SLOTS.map((slot) => {
+                const fullSlotFormat = convertToFullSlotFormat(slot);
+                const bookedCount = slotAvailability[fullSlotFormat] || 0;
+                const isFull = bookedCount >= 2;
+                const isSelected = selectedSlot === fullSlotFormat;
 
-              return (
-                <button
-                  key={slot}
-                  onClick={() => !isFull && onSlotChange(slot)}
-                  disabled={isFull}
-                  className={`px-3 py-2.5 rounded-sm border-2 text-sm font-semibold transition-colors text-center ${
+                return (
+                  <button
+                    key={slot}
+                    onClick={() => !isFull && onSlotChange(fullSlotFormat)}
+                    disabled={isFull}
+                    className={`px-3 py-2.5 rounded-sm border-2 text-sm font-semibold transition-colors text-center ${
                     isSelected
                       ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
                       : isFull
@@ -377,12 +448,13 @@ export default function SchedulePickerView({
                 >
                   <span className="block font-bold">{formatSlotLabel(slot)}</span>
                   <span className={`text-xs mt-0.5 ${isSelected ? 'text-emerald-100' : isFull ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {isFull ? 'Full' : '2/2 avail'}
+                    {isFull ? `Full (2/2)` : `Available (${bookedCount}/2)`}
                   </span>
                 </button>
               );
             })}
           </div>
+          )}
         </div>
       )}
 

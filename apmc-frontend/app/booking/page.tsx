@@ -44,6 +44,37 @@ export default function BookingPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Prevent double submission
+
+  // Reset everything when component mounts (fresh start each time)
+  useEffect(() => {
+    // Clear any leftover state from sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('apmc_booking_state');
+    }
+    
+    // Force reset if we're showing completed ticket on mount
+    // This handles the case where user bookmarks /booking or returns via browser history
+    if (currentStep === 4) {
+      setCurrentStep(1);
+      setSelectedCategory(null);
+      setScheduleData({ office: '', date: '', slot: '' });
+      setPatientDetails(null);
+      setTicket(null);
+      setShowTimeoutWarning(false);
+      setIsSubmitting(false);
+    }
+  }, []); // Empty deps = run once on mount
+  
+  // Clear state when successfully moving to ticket
+  useEffect(() => {
+    if (currentStep === 4 && ticket) {
+      // Mark that we've shown this ticket
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('apmc_last_ticket', ticket.queueId);
+      }
+    }
+  }, [currentStep, ticket]);
 
   // Track if there are unsaved changes
   useEffect(() => {
@@ -59,12 +90,47 @@ export default function BookingPage() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = '⚠️ You have unsaved appointment data. Are you sure you want to leave?';
       }
     };
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (currentStep === 4) {
+        // On ticket page - completely block back button
+        e.preventDefault();
+        window.history.pushState(null, '', window.location.href);
+        alert(
+          '⚠️ Cannot Go Back From Ticket Page\n\n' +
+          'You have completed your booking. Please save your ticket and click "Return to Homepage".\n\n' +
+          'Using the back button is disabled to prevent accidental data loss.'
+        );
+        return;
+      }
+      
+      if (hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          '⚠️ Warning: Leaving Will Lose Your Progress\n\n' +
+          'You are in the middle of booking an appointment. Using the back button will lose all your entered information.\n\n' +
+          'Are you sure you want to leave?'
+        );
+        if (!confirmed) {
+          // Push current state back to prevent navigation
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
+    // Add history state on mount and when step changes
+    window.history.pushState(null, '', window.location.href);
+
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedChanges]);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [hasUnsavedChanges, currentStep]);
 
   // 10-minute session timeout logic
   useEffect(() => {
@@ -137,7 +203,15 @@ export default function BookingPage() {
 
   function handleStep2Back() {
     if (scheduleData.office || scheduleData.date || scheduleData.slot) {
-      if (!window.confirm('You have unsaved schedule changes. Go back?')) return;
+      const confirmed = window.confirm(
+        '⚠️ Warning: Going Back Will Lose Your Schedule\n\n' +
+        'You have selected:\n' +
+        `• Office: ${scheduleData.office}\n` +
+        `• Date: ${scheduleData.date}\n` +
+        `• Time: ${scheduleData.slot}\n\n` +
+        'Are you sure you want to go back? All this information will be lost.'
+      );
+      if (!confirmed) return;
     }
     setScheduleData({ office: '', date: '', slot: '' });
     setCurrentStep(1);
@@ -148,24 +222,98 @@ export default function BookingPage() {
   }
 
   function handleStep3Back() {
-    if (!window.confirm('You have unsaved patient details. Go back?')) return;
+    const confirmed = window.confirm(
+      '⚠️ Warning: Going Back Will Lose Your Patient Information\n\n' +
+      'You have filled out the patient intake form. Going back will erase all entered information.\n\n' +
+      'Are you sure you want to go back?'
+    );
+    if (!confirmed) return;
     setCurrentStep(2);
   }
 
-  function handleStep3Next(details: NewCheckupDetails | FollowUpDetails | PhilHealthYakapDetails) {
+  async function handleStep3Next(details: NewCheckupDetails | FollowUpDetails | PhilHealthYakapDetails) {
+    // Prevent double submission
+    if (isSubmitting) {
+      console.log('⚠️ Already submitting, ignoring duplicate call');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Generate queue ID
     const queueId = generateQueueId(selectedCategory!, scheduleData.date);
-    setPatientDetails(details);
-    setTicket({ queueId });
-    setCurrentStep(4);
+    
+    // Show loading state (you could add a loading modal here)
+    try {
+      // Save to Supabase via API - map phone to contactNumber
+      const response = await fetch('/api/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: selectedCategory,
+          office: scheduleData.office,
+          date: scheduleData.date,
+          slot: scheduleData.slot,
+          fullName: details.fullName,
+          contactNumber: details.phone, // Map phone to contactNumber
+          age: 'age' in details ? details.age : undefined,
+          sex: 'sex' in details ? details.sex : undefined,
+          chiefComplaint: 'chiefComplaint' in details ? details.chiefComplaint : undefined,
+          previousDoctor: 'previousDoctorOrDepartment' in details ? details.previousDoctorOrDepartment : undefined,
+          followUpPurpose: 'purpose' in details ? details.purpose : undefined,
+          philhealthPin: 'philhealthPin' in details ? details.philhealthPin : undefined,
+          serviceType: 'serviceType' in details ? details.serviceType : undefined,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle API errors
+        setIsSubmitting(false);
+        alert(`❌ Booking Failed\n\n${result.error || 'Unable to book appointment. Please try again.'}`);
+        return;
+      }
+
+      // Success - show ticket
+      setPatientDetails(details);
+      setTicket({ queueId: result.queueId });
+      setCurrentStep(4);
+      setIsSubmitting(false);
+      
+      // Don't show alert - let user take screenshot peacefully
+      
+    } catch (error) {
+      console.error('Booking error:', error);
+      setIsSubmitting(false);
+      alert('❌ Network Error\n\nUnable to connect to the server. Please check your internet connection and try again.');
+    }
   }
 
   function handleReset() {
+    // Confirm before leaving ticket
+    const confirmed = window.confirm(
+      '📸 Have you saved your ticket?\n\n' +
+      'Please make sure you have:\n' +
+      '✓ Taken a screenshot of your queue ticket\n' +
+      '✓ Saved it for your records\n\n' +
+      'Once you leave, you cannot view this ticket again.\n\n' +
+      'Are you ready to return to the homepage?'
+    );
+    
+    if (!confirmed) return;
+    
+    // Reset all state to start fresh
     setCurrentStep(1);
     setSelectedCategory(null);
     setScheduleData({ office: '', date: '', slot: '' });
     setPatientDetails(null);
     setTicket(null);
     setShowTimeoutWarning(false);
+    setIsSubmitting(false);
+    
+    // Navigate to home
+    router.push('/');
   }
 
   return (
@@ -195,6 +343,25 @@ export default function BookingPage() {
                 Exit
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Modal During Submission */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[110] px-4">
+          <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-8 text-center">
+            <div className="relative w-16 h-16 mx-auto mb-6">
+              <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">Processing Your Appointment</h3>
+            <p className="text-slate-600 text-sm mb-4">
+              Please wait while we save your booking information.
+            </p>
+            <p className="text-slate-500 text-xs">
+              Do not close or refresh this page.
+            </p>
           </div>
         </div>
       )}

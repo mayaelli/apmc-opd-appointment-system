@@ -1,6 +1,6 @@
 // app/api/slots/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
 
 const STANDARD_SLOTS = [
   '08:00 AM - 08:30 AM',
@@ -25,13 +25,19 @@ export async function GET(request: Request) {
   }
 
   try {
-    const existingAppointments = await prisma.appointment.findMany({
-      where: { office, date },
-      select: { slot: true },
-    });
+    const { data: existingAppointments, error } = await supabase
+      .from('appointments')
+      .select('slot')
+      .eq('office', office)
+      .eq('date', date);
+
+    if (error) {
+      console.error('Error fetching appointments:', error);
+      return NextResponse.json({ error: 'Failed to fetch slots' }, { status: 500 });
+    }
 
     const slotCounts: Record<string, number> = {};
-    existingAppointments.forEach((appt) => {
+    (existingAppointments || []).forEach((appt) => {
       slotCounts[appt.slot] = (slotCounts[appt.slot] || 0) + 1;
     });
 

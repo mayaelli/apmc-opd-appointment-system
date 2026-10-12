@@ -1,6 +1,8 @@
 // app/api/appointments/route.ts
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { supabase } from '@/lib/supabase';
+import { sanitize, isValidPhilippinePhone, isValidFutureDate, isValidName, isValidAge } from '@/lib/validation';
+import { rateLimit, formatRemainingTime } from '@/lib/rate-limit';
 
 const CATEGORY_CODES: Record<string, string> = {
   'new-checkup': 'NCC',
@@ -10,19 +12,95 @@ const CATEGORY_CODES: Record<string, string> = {
 
 export async function POST(request: Request) {
   try {
+    // === RATE LIMITING ===
+    const ip = request.headers.get('x-forwarded-for') ?? 
+               request.headers.get('x-real-ip') ?? 
+               'unknown';
+    
+    const { success: rateLimitSuccess, remainingMs } = rateLimit(ip, 3, 10 * 60 * 1000);
+    
+    if (!rateLimitSuccess) {
+      const waitTime = formatRemainingTime(remainingMs!);
+      console.log(`⛔ Rate limited: ${ip} - Wait: ${waitTime}`);
+      return NextResponse.json({ 
+        error: `Too many booking attempts. Please try again in ${waitTime}.` 
+      }, { status: 429 });
+    }
+
     const body = await request.json();
+    console.log('📥 Received body:', JSON.stringify(body, null, 2));
+    
     const { category, office, date, slot, fullName, contactNumber, ...rest } = body;
 
+    // === INPUT VALIDATION ===
     if (!category || !office || !date || !slot || !fullName || !contactNumber) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Strictly enforce the 2-slot limit right before saving
-    const currentCount = await prisma.appointment.count({
-      where: { office, date, slot },
-    });
+    // Sanitize text inputs
+    const cleanFullName = sanitize(fullName);
+    const cleanOffice = sanitize(office);
+    const cleanChiefComplaint = rest.chiefComplaint ? sanitize(rest.chiefComplaint) : null;
+    const cleanPreviousDoctor = rest.previousDoctor ? sanitize(rest.previousDoctor) : null;
+    const cleanFollowUpPurpose = rest.followUpPurpose ? sanitize(rest.followUpPurpose) : null;
+    const cleanServiceType = rest.serviceType ? sanitize(rest.serviceType) : null;
+    const cleanPhilhealthPin = rest.philhealthPin ? sanitize(rest.philhealthPin) : null;
 
-    if (currentCount >= 2) {
+    // Validate name
+    if (!isValidName(cleanFullName)) {
+      return NextResponse.json({ 
+        error: 'Invalid name format. Please use letters only (at least 3 characters).' 
+      }, { status: 400 });
+    }
+
+    // Validate phone
+    if (!isValidPhilippinePhone(contactNumber)) {
+      return NextResponse.json({ 
+        error: 'Invalid phone number format. Please use Philippine mobile format (09XX-XXX-XXXX).' 
+      }, { status: 400 });
+    }
+
+    // Validate date
+    if (!isValidFutureDate(date)) {
+      return NextResponse.json({ 
+        error: 'Cannot book appointments in the past. Please select a future date.' 
+      }, { status: 400 });
+    }
+
+    // Validate age if provided
+    if (rest.age && !isValidAge(rest.age)) {
+      return NextResponse.json({ 
+        error: 'Invalid age. Please enter a valid age between 1 and 120.' 
+      }, { status: 400 });
+    }
+
+    console.log('✅ All validations passed');
+
+    // Strictly enforce the 2-slot limit right before saving
+    console.log('🔍 Checking slot availability for:', { office, date, slot });
+    
+    const { count, error: countError, data: debugData } = await supabase
+      .from('appointments')
+      .select('*', { count: 'exact', head: true })
+      .eq('office', office)
+      .eq('date', date)
+      .eq('slot', slot);
+
+    console.log('🔍 Query result:', { count, error: countError, hasData: !!debugData });
+
+    if (countError) {
+      console.error('❌ Error checking slot availability:', countError);
+      console.error('Full error details:', JSON.stringify(countError, null, 2));
+      console.error('Error code:', countError.code);
+      console.error('Error hint:', countError.hint);
+      console.error('Error details:', countError.details);
+      return NextResponse.json({ 
+        error: 'Failed to verify slot availability',
+        details: countError.message || countError.hint || 'Unknown database error'
+      }, { status: 500 });
+    }
+
+    if (count !== null && count >= 2) {
       return NextResponse.json(
         { error: 'Selected time slot is fully booked (Max 2 slots)' },
         { status: 409 }
@@ -37,27 +115,37 @@ export async function POST(request: Request) {
       .padStart(4, '0');
     const queueId = `APMC-${code}-${datePart}-${randomPart}`;
 
-    // Save appointment record
-    const appointment = await prisma.appointment.create({
-      data: {
-        queueId,
+    // Save appointment record with sanitized inputs
+    const { data: appointment, error: insertError } = await supabase
+      .from('appointments')
+      .insert({
+        queue_id: queueId,
         category,
-        office,
+        office: cleanOffice,
         date,
         slot,
-        fullName,
-        contactNumber,
+        full_name: cleanFullName,
+        contact_number: contactNumber,
         age: rest.age ? parseInt(rest.age, 10) : null,
         sex: rest.sex || null,
-        chiefComplaint: rest.chiefComplaint || null,
-        philhealthPin: rest.philhealthPin || null,
-      },
-    });
+        chief_complaint: cleanChiefComplaint,
+        previous_doctor: cleanPreviousDoctor,
+        follow_up_purpose: cleanFollowUpPurpose,
+        philhealth_pin: cleanPhilhealthPin,
+        service_type: cleanServiceType,
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error creating appointment:', insertError);
+      return NextResponse.json({ error: 'Failed to create appointment' }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Appointment successfully booked',
-      queueId: appointment.queueId,
+      queueId: appointment.queue_id,
     });
   } catch (error) {
     console.error('Error creating appointment:', error);

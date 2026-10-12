@@ -1,1 +1,76 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+// Prisma schema for APMC OPD Appointment System
+// Database: SQLite (development) / PostgreSQL (production-ready)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Main appointment records with queue management
+model Appointment {
+  id        Int      @id @default(autoincrement())
+  queueId   String   @unique // APMC-NCC-20260413-1234 format
+  
+  // Booking details
+  category  String   // 'new-checkup' | 'follow-up' | 'philhealth-yakap'
+  office    String   // Assigned office/department
+  date      String   // YYYY-MM-DD format
+  slot      String   // '08:00 AM - 08:30 AM' format
+  
+  // Patient information
+  fullName       String
+  contactNumber  String
+  age            Int?
+  sex            String?
+  
+  // Category-specific fields
+  chiefComplaint    String?  // For new-checkup
+  previousDoctor    String?  // For follow-up
+  followUpPurpose   String?  // For follow-up
+  philhealthPin     String?  // For philhealth-yakap
+  serviceType       String?  // For philhealth-yakap
+  
+  // Metadata
+  status     String   @default("confirmed") // confirmed | completed | cancelled | no-show
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Indexes for efficient queries
+  @@index([office, date, slot])
+  @@index([date])
+  @@index([category])
+  @@index([queueId])
+}
+
+// Holiday calendar to block dates
+model Holiday {
+  id          Int      @id @default(autoincrement())
+  date        String   @unique // YYYY-MM-DD format
+  name        String   // Holiday name
+  description String?
+  createdAt   DateTime @default(now())
+  
+  @@index([date])
+}
+
+// Office configuration and operating hours
+model Office {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique // Unique office identifier
+  name        String   // Full office name
+  category    String?  // Which appointment category this office serves
+  isActive    Boolean  @default(true)
+  
+  // Operating configuration
+  maxSlotsPerInterval Int @default(2) // Default 2 patients per 30-min slot
+  operatingDays       String @default("1,2,3,4,5") // 1=Mon, 5=Fri (comma-separated)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([category])
+}

@@ -138,7 +138,7 @@ export default function AppointmentTicketView({
         onClick={onReset}
         className="w-full bg-emerald-700 hover:bg-emerald-800 text-white uppercase font-bold tracking-wide py-4 text-sm rounded-sm transition-colors shadow-sm"
       >
-        Book Another Appointment
+        Return to Homepage
       </button>
     </div>
   );
