@@ -1,0 +1,36 @@
+{
+  "id": "FEAT-007",
+  "type": "feat",
+  "description": "Refine components/booking/PatientDetailsView.tsx formal intake forms with uppercase section headers, emerald info callout, border-b-2 form divider, uppercase tracking-widest field labels, border-2 input styling with emerald-600 focus rings, and uppercase tracking-wide button typography across all three conditional sub-forms",
+  "status": "pending",
+  "steps": [
+    "1. Update main section header: 'Step 3: Patient Details' (uppercase, tracking-widest, text-xs, slate-400) + h2 'Provide Your Information' (text-xl, font-bold, slate-900, mt-1). Category badge row: 'Intake Form for:' (slate-600, text-sm) + emerald-700 bg white text uppercase text-xs font-bold px-3 py-1.5 rounded-sm badge showing categoryLabel.",
+    "2. Update info callout: border-l-4 border-emerald-600 bg-emerald-50 p-4 mb-6 text-sm emerald-800: 'Please provide accurate details. This information will be used for your clinical intake and queue assignment.'",
+    "3. Update form divider header: border-b-2 border-slate-200 pb-3 mb-6: 'PATIENT INTAKE FORM' (uppercase, tracking-widest, text-xs, slate-500, font-bold) + 'Fields marked with (*) are required' (text-xs, slate-400, mt-0.5).",
+    "4. Update shared input/label styling in all three sub-forms (NewCheckupForm, FollowUpForm, PhilHealthYakapForm): Labels - uppercase tracking-widest text-xs slate-500 font-semibold mb-1.5. Inputs/textareas/selects - border-2 border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 rounded-sm px-4 py-3 text-sm font-medium slate-900 bg-white. Required marker (*) - red-600 font-bold. Textarea char counter - slate-400 text-xs text-right mt-1. Keep all existing form fields, validation logic, and conditional rendering unchanged.",
+    "5. Update FormFooter component: border-t-2 border-slate-200 pt-6 mt-8. Back button: slate-300 border-2 hover:bg-slate-50. Next button: emerald-700 hover:emerald-800 uppercase font-bold py-3 px-6 disabled:slate-300."
+  ],
+  "acceptance_criteria": [
+    "Section header shows uppercase 'Step 3' label with formal h2 and category badge",
+    "Emerald info callout with border-l-4 accent appears above form divider",
+    "Form divider has border-b-2 with uppercase 'PATIENT INTAKE FORM' heading",
+    "All field labels use uppercase tracking-widest styling",
+    "All inputs use border-2 with emerald-600 focus rings",
+    "Required markers show as red-600 asterisks",
+    "Footer buttons use border-2 and uppercase typography",
+    "All three conditional forms (new-checkup, follow-up, philhealth-yakap) render correctly with new styling",
+    "Existing validation logic and form submission work unchanged",
+    "Component compiles without TypeScript errors"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev', complete steps 1-2 with 'New Check-up' category - confirm Step 3 shows uppercase header, emerald callout, border-b-2 divider, uppercase labels, and border-2 inputs",
+    "Fill out form and submit - verify validation works and navigation to step 4 succeeds",
+    "Restart booking flow with 'Follow-up' category - confirm follow-up form renders with same styling (previous doctor field, purpose textarea)",
+    "Restart with 'PhilHealth Yakap' category - confirm PhilHealth form renders correctly (PIN field, service type dropdown)",
+    "Test focus states on all input types (text, number, select, textarea) - confirm emerald-600 border and ring-2 appear",
+    "Test validation - try submitting with empty required fields - confirm disabled state prevents submission"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -16,7 +16,7 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
   return (
     <aside className="w-full bg-white rounded-sm border border-slate-300 shadow-md overflow-hidden">
       {/* Header band */}
-      <div className="bg-slate-900 py-4 px-5 border-b-4 border-emerald-600 flex items-center gap-3">
+      <div className="bg-white py-4 px-5 border-b-4 border-emerald-600 flex items-center gap-3">
         <Image
           src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
           alt="Amai Pakpak Medical Center seal"
@@ -25,8 +25,8 @@ export default function BookingSidebarTracker({ currentStep }: BookingSidebarTra
           className="object-contain shrink-0"
         />
         <div>
-          <p className="text-white font-bold text-sm leading-tight">APMC OPD</p>
-          <p className="text-slate-300 text-xs">Appointment Progress</p>
+          <p className="text-slate-900 font-bold text-sm leading-tight">APMC OPD</p>
+          <p className="text-slate-600 text-xs">Appointment Progress</p>
         </div>
       </div>
 

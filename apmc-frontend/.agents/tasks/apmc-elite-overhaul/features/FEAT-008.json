@@ -1,0 +1,39 @@
+{
+  "id": "FEAT-008",
+  "type": "feat",
+  "description": "Transform components/booking/AppointmentTicketView.tsx into high-contrast world-class digital pass with slate-900 header band (not emerald-700), emerald-600 Queue ID section, uppercase tracking-widest row labels, thicker amber warning (border-l-[6px]), slate-700 screenshot note, and full-width emerald CTA button",
+  "status": "pending",
+  "steps": [
+    "1. Update card wrapper: max-w-2xl mx-auto, border-4 border-slate-300 (thicker border), rounded-sm, overflow-hidden, shadow-2xl.",
+    "2. Update header band: slate-900 bg (not emerald-700), py-6 px-6, border-b-4 border-emerald-600. Left side: seal image (48×48) + 'AMAI PAKPAK MEDICAL CENTER' (text-lg, font-bold, white, uppercase, tracking-wide) + 'Outpatient Department' subtitle (slate-300, text-xs). Right side: 'CONFIRMED' badge - white border-2 border-white text-white font-bold uppercase text-xs px-4 py-2 rounded-sm. Add seal Image import (48×48, public/Amai_Pakpak_Medical_Center_seal.png).",
+    "3. Update Queue ID section: emerald-600 bg (not emerald-50), py-6 px-6, border-b-2 border-emerald-700. Label: 'QUEUE IDENTIFICATION NUMBER' (uppercase, tracking-widest, text-xs, emerald-200, font-bold, mb-2). Queue ID: text-4xl font-mono font-black white tracking-widest.",
+    "4. Update patient details rows: white bg, px-6 py-3, each row border-b border-slate-100 last:border-0. Use existing TicketRow component but update styling: Label column - uppercase tracking-widest text-xs slate-400 font-semibold w-40. Value column - text-sm font-semibold slate-900. Keep existing rows (PATIENT NAME, CONSULTATION TYPE, ASSIGNED OFFICE, APPOINTMENT DATE with formatDateLong, TIME SLOT with formatTimeRange).",
+    "5. Update operational warnings section: px-6 py-6 space-y-4. Amber box: border-l-[6px] border-amber-500 (thicker) bg-amber-50 p-5 rounded-sm. '⚠ MANDATORY ARRIVAL POLICY' (uppercase, tracking-wide, text-xs, amber-900, font-bold, mb-2). Warning text: text-sm amber-800 leading-relaxed. Screenshot note: slate-700 bg (bg-slate-700, not slate-50) text-slate-50 p-4 rounded-sm text-sm flex items-start gap-2: '📷' + 'Screenshot or save this ticket for your records. No SMS confirmation will be sent.'",
+    "6. Update footer action button: px-6 pb-6. Button: full-width emerald-700 hover:emerald-800 uppercase font-bold tracking-wide py-4 text-sm rounded-sm 'BOOK ANOTHER APPOINTMENT'. Keep existing onReset handler."
+  ],
+  "acceptance_criteria": [
+    "Ticket card has border-4 slate-300 with shadow-2xl",
+    "Header band shows slate-900 bg with seal image, two-line title, and white outlined CONFIRMED badge",
+    "Queue ID section has emerald-600 bg (not emerald-50) with white text and emerald-200 label",
+    "Patient details rows use uppercase tracking-widest labels in slate-400",
+    "Amber warning has border-l-[6px] with uppercase 'MANDATORY ARRIVAL POLICY' heading",
+    "Screenshot note has slate-700 bg with slate-50 text (not slate bg)",
+    "CTA button is full-width with uppercase tracking-wide typography",
+    "All existing formatting functions (formatDateLong, formatTimeRange, CATEGORY_LABELS) work unchanged",
+    "Component compiles without TypeScript errors"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev', complete full booking flow (steps 1-3) - confirm ticket renders at step 4",
+    "Verify ticket card has thick slate-300 border and heavy shadow",
+    "Confirm header has slate-900 bg with seal image, APMC title, and white CONFIRMED badge on right",
+    "Verify Queue ID section has emerald-600 bg (NOT light emerald-50) with large white mono text",
+    "Check patient details rows have uppercase tracking-widest labels",
+    "Confirm amber warning box has 6px left border and uppercase policy heading",
+    "Verify screenshot note has dark slate-700 bg with light text (not light bg)",
+    "Click 'BOOK ANOTHER APPOINTMENT' - confirm onReset works and returns to step 1",
+    "Take screenshot of ticket - verify high contrast makes it screenshot-friendly"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

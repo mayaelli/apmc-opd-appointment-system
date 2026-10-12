@@ -255,35 +255,35 @@ export default function SchedulePickerView({
 
         <div className="border-2 border-slate-300 rounded-sm overflow-hidden">
           {/* Month navigation */}
-          <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b-2 border-emerald-600">
+          <div className="flex items-center justify-between px-4 py-3 bg-white border-b-2 border-emerald-600">
             <button
               onClick={prevMonth}
               disabled={!canGoBack}
               aria-label="Previous month"
               className={`h-8 w-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
                 canGoBack
-                  ? 'text-white hover:text-emerald-400'
-                  : 'text-slate-500 cursor-not-allowed'
+                  ? 'text-slate-700 hover:text-emerald-600'
+                  : 'text-slate-300 cursor-not-allowed'
               }`}
             >
               ‹
             </button>
-            <span className="text-sm font-bold text-white uppercase tracking-wide">
+            <span className="text-sm font-bold text-slate-900 uppercase tracking-wide">
               {MONTH_NAMES[calendarMonth]} {calendarYear}
             </span>
             <button
               onClick={nextMonth}
               aria-label="Next month"
-              className="h-8 w-8 rounded flex items-center justify-center text-sm font-medium text-white hover:text-emerald-400 transition-colors"
+              className="h-8 w-8 rounded flex items-center justify-center text-sm font-medium text-slate-700 hover:text-emerald-600 transition-colors"
             >
               ›
             </button>
           </div>
 
           {/* Day column headers */}
-          <div className="grid grid-cols-5 bg-slate-700">
+          <div className="grid grid-cols-5 bg-slate-100 border-b border-slate-200">
             {DAY_LABELS.map((d) => (
-              <div key={d} className="py-2 text-center text-xs font-bold text-white uppercase tracking-widest">
+              <div key={d} className="py-2 text-center text-xs font-bold text-slate-600 uppercase tracking-widest">
                 {d}
               </div>
             ))}

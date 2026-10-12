@@ -1,0 +1,26 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Transform app/page.tsx and components/terms/TermsAndConditionsView.tsx into elite landing experience with hero section (slate-900 bg, large seal, formal headings), structured terms card (border-l-4 emerald accent, numbered list), and government-grade formal styling throughout",
+  "status": "pending",
+  "steps": [
+    "1. Modify app/page.tsx: Change main wrapper to full-page slate-50 bg (not slate-50 centered). Add hero section at top before TermsAndConditionsView: slate-900 bg, py-12, text-center, large seal image (80×80), 'APMC Outpatient Department' h1 (text-3xl, font-bold, white), 'Online Appointment & Queue Management System' subtitle (text-slate-300). Keep Header/Footer layout, ensure TermsAndConditionsView renders in content area with mt-8.",
+    "2. Modify components/terms/TermsAndConditionsView.tsx: Change card wrapper to max-w-3xl centered, white bg, border border-slate-300, rounded-sm. Replace emerald-700 header band with section header: 'TERMS & CONDITIONS' (uppercase, tracking-wide, text-slate-400, text-xs) + h2 'Before You Proceed' (text-2xl, font-bold, slate-900). Keep terms content in border-l-4 border-emerald-600 bg-emerald-50/50 p-6 with numbered list (formal language). Update consent checkbox row: border-t border-slate-200 pt-6 mt-6, large checkbox. CTA button: full-width sm:w-auto, emerald-700 bg hover:emerald-800, uppercase tracking-wide font-bold, py-3.5 px-8, rounded-sm, 'PROCEED TO BOOKING'."
+  ],
+  "acceptance_criteria": [
+    "Landing page shows slate-900 hero section with large seal and formal headings before terms card",
+    "Terms card has max-w-3xl white bg with slate border, section header (not colored band), and border-l-4 emerald accent on terms content",
+    "Numbered list items use formal institutional language with bold keywords",
+    "Consent checkbox and CTA button follow government-portal styling (uppercase, tracking-wide, emerald-700)",
+    "Page compiles without TypeScript errors and hero section is visible above terms card"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev' and navigate to http://localhost:3000 - confirm dark hero section appears at top with large seal, white title, and subtitle",
+    "Scroll to terms card - verify white card with border, section header (not colored band), emerald left accent on terms box, and numbered list formatting",
+    "Click 'PROCEED TO BOOKING' button (after checking consent) - confirm navigation to /booking works",
+    "Test responsive layout on tablet (768px) and mobile (375px) viewports"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

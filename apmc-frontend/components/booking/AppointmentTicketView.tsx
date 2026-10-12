@@ -73,7 +73,7 @@ export default function AppointmentTicketView({
       {/* Ticket card */}
       <div className="border-4 border-slate-300 rounded-sm shadow-2xl overflow-hidden">
         {/* Header band */}
-        <div className="bg-slate-900 px-6 py-6 border-b-4 border-emerald-600 flex items-start justify-between gap-4">
+        <div className="bg-white px-6 py-6 border-b-4 border-emerald-600 flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <Image
               src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
@@ -83,13 +83,13 @@ export default function AppointmentTicketView({
               className="object-contain shrink-0"
             />
             <div>
-              <h2 className="text-lg font-bold text-white leading-tight uppercase tracking-wide">
+              <h2 className="text-lg font-bold text-slate-900 leading-tight uppercase tracking-wide">
                 AMAI PAKPAK MEDICAL CENTER
               </h2>
-              <p className="text-slate-300 text-xs mt-0.5">Outpatient Department</p>
+              <p className="text-slate-600 text-xs mt-0.5">Outpatient Department</p>
             </div>
           </div>
-          <span className="shrink-0 border-2 border-white text-white text-xs font-bold px-4 py-2 rounded-sm tracking-widest uppercase">
+          <span className="shrink-0 border-2 border-emerald-600 text-emerald-700 bg-emerald-50 text-xs font-bold px-4 py-2 rounded-sm tracking-widest uppercase">
             CONFIRMED
           </span>
         </div>

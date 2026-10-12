@@ -1,0 +1,25 @@
+{
+  "id": "FEAT-001",
+  "type": "feat",
+  "description": "Upgrade Header.tsx and Footer.tsx to elite institutional government-portal standard with deep slate backgrounds, emergency notification strips, formal three-column footer, and official Republic branding following passport.gov.ph design DNA",
+  "status": "pending",
+  "steps": [
+    "1. Modify components/layout/Header.tsx: Add amber-400 emergency notification strip (h-8, slate-800 bg) at top with '⚠ For urgent medical emergencies, proceed directly to the Emergency Room or dial 911.' Change main header band from white to slate-900 bg with white text, emerald-600 3px bottom border, h-20. Update logo area to show seal + 'APMC Outpatient Department' title (white, bold, text-base) + 'Amai Pakpak Medical Center' subtitle (slate-300, text-xs). Right side: white outlined 'Official Portal' badge + vertical separator + RP flag emoji + 'Republic of the Philippines' (slate-300, text-xs). Maintain sticky top-0 z-50.",
+    "2. Modify components/layout/Footer.tsx: Replace single-line footer with formal institutional footer. Dark slate-800 bg, white/slate-300 text, py-8, border-t-4 border-emerald-600. Three-column grid on desktop (stack on mobile): Left column - 'APMC OPD System' heading + description + address placeholder. Center column - 'Quick Links' with Home/Terms/Privacy/Requirements placeholders. Right column - 'Emergency Contacts' with ER/Hotline placeholders + '911 immediately' note. Bottom row: centered copyright '© 2026 Amai Pakpak Medical Center. All rights reserved.' (slate-400, text-xs) + 'Powered by APMC IT Department'."
+  ],
+  "acceptance_criteria": [
+    "Header shows amber emergency strip at top, dark slate-900 main band with white text and emerald bottom border",
+    "Header displays seal, two-line title/subtitle, separator, and RP badge/text on right",
+    "Footer has slate-800 bg with emerald-600 top border and three-column grid layout",
+    "Footer includes all required sections (system info, quick links, emergency contacts, copyright)",
+    "Both components compile without TypeScript errors and maintain responsive behavior"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev' and navigate to http://localhost:3000 - visually confirm header has amber top strip, dark slate band with white text, and emerald bottom border",
+    "Scroll to bottom of page - confirm footer has dark slate bg, three columns on desktop (stack on mobile), and all content sections render correctly",
+    "Test on mobile viewport (375px) - header and footer must remain readable and properly stacked"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

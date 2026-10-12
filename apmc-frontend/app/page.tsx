@@ -10,7 +10,7 @@ export default function Home() {
       <Header />
 
       {/* Hero section */}
-      <div className="bg-slate-900 py-12 text-center">
+      <div className="bg-white py-12 text-center border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4">
           <Image
             src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
@@ -20,8 +20,8 @@ export default function Home() {
             className="mx-auto object-contain mb-4"
             priority
           />
-          <h1 className="text-3xl font-bold text-white">APMC Outpatient Department</h1>
-          <p className="text-slate-300 mt-2">Online Appointment & Queue Management System</p>
+          <h1 className="text-3xl font-bold text-slate-900">APMC Outpatient Department</h1>
+          <p className="text-slate-600 mt-2">Online Appointment & Queue Management System</p>
         </div>
       </div>
 

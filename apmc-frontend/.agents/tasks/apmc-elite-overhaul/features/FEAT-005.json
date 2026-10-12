@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Refine components/booking/CategorySelector.tsx to formal government-portal category cards with uppercase section headers, blue info callout, sharp border styling (border-2, rounded-sm), emerald-600 selection accent with ring-2, and uppercase tracking-wide button typography",
+  "status": "pending",
+  "steps": [
+    "1. Update section header in CategorySelector.tsx: Add 'Step 1: Select Consultation Type' (uppercase, tracking-widest, text-xs, slate-400) + h2 'Choose Your Visit Category' (text-xl, font-bold, slate-900, mt-1). Replace existing header paragraph.",
+    "2. Add info callout before cards grid: border-l-4 border-blue-500 bg-blue-50 p-4 text-sm blue-800 mb-6: 'Each category maintains independent scheduling and intake requirements.'",
+    "3. Update category cards styling: Unselected - border-2 border-slate-300 hover:border-slate-400 hover:bg-slate-50 cursor-pointer. Selected - border-2 border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/20 border-l-[6px] border-l-emerald-600. Badge: emerald-700 bg white text uppercase text-xs font-bold px-3 py-1 rounded-sm (not pill). Title: text-base font-bold slate-900. Description: text-sm slate-600 mt-1. Checkmark: emerald-600 circle with white check (selected) or slate-300 empty circle (unselected). Keep existing categories array and selection logic.",
+    "4. Update footer: border-t border-slate-200 pt-6 mt-6. Next button: emerald-700 hover:emerald-800 uppercase tracking-wide font-bold py-3 px-6 rounded-sm disabled:bg-slate-300."
+  ],
+  "acceptance_criteria": [
+    "Section shows uppercase 'Step 1' label above bold h2 heading",
+    "Blue info callout with border-l-4 accent appears above category cards",
+    "Category cards use border-2 (not border) with rounded-sm corners",
+    "Selected card shows border-2 + ring-2 emerald accent with thicker left border (6px)",
+    "Badge uses emerald-700 bg, rounded-sm (not pill), uppercase text",
+    "Next button uses uppercase tracking-wide typography",
+    "Component compiles without errors and maintains existing selection/navigation logic"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev', navigate to /booking - confirm Step 1 shows uppercase section header and blue info callout",
+    "Click each category card - verify border-2 styling, ring-2 emerald accent on selection, and thicker left border for selected state",
+    "Confirm badge has rounded-sm corners (not pill) and uppercase text",
+    "Click Next button (after selecting category) - confirm navigation to step 2 works",
+    "Test hover states on unselected cards - should show border-slate-400 and bg-slate-50"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,35 @@
+{
+  "id": "FEAT-006",
+  "type": "feat",
+  "description": "Transform components/booking/SchedulePickerView.tsx into government-grade schedule interface with uppercase labels (tracking-widest), slate-800 calendar header, emerald-700 weekday cells with border, slate-500 slot limit callout, formal time slot grid with border-2 styling, and refined availability indicators",
+  "status": "pending",
+  "steps": [
+    "1. Update section header: 'Step 2: Office & Schedule' (uppercase, tracking-widest, text-xs, slate-400) + h2 'Select Department, Date, and Time Slot' (text-xl, font-bold, slate-900, mt-1).",
+    "2. Office dropdown: Label 'ASSIGNED OFFICE / DEPARTMENT' (uppercase, tracking-widest, text-xs, slate-500, font-semibold, mb-2). Dropdown: border-2 border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 rounded-sm px-4 py-3 text-sm font-medium slate-900 bg-white. Keep existing offices list (ALL_OFFICES for general, PHILHEALTH_OFFICE for philhealth-yakap category).",
+    "3. Calendar section: Label 'APPOINTMENT DATE' (uppercase, tracking-widest, text-xs, slate-500, font-semibold, mb-3). Container: border-2 border-slate-300 rounded-sm overflow-hidden. Month nav bar: slate-800 bg (not slate-50), white text, font-bold uppercase tracking-wide text-sm, py-3, border-b-2 border-emerald-600. Day headers: slate-700 bg, white text, uppercase tracking-widest text-xs font-bold py-2. Date cells - Available weekday: white bg, emerald-700 font-semibold, hover:bg-emerald-50, border border-emerald-200, cursor-pointer. Selected: emerald-600 bg white text font-bold. Past/holiday/disabled: slate-100 bg slate-300 text cursor-not-allowed. Holiday indicator: small red-500 dot below date. Legend row: slate-50 bg px-4 py-2 flex gap-5 text-xs slate-600. Keep existing calendar logic (Mon-Fri only, HOLIDAYS Set, date calculation).",
+    "4. Add slot limit callout before time slot grid: border-l-4 border-slate-500 bg-slate-50 p-4 text-sm slate-700 font-medium: '⚠ Slots are strictly limited to 2 patients per 30-minute interval. Fully booked slots cannot be selected.'",
+    "5. Time slot grid: Grid 4 cols desktop, 3 tablet, 2 mobile, gap-3. Available slot: white bg, border-2 border-slate-300, hover:border-emerald-600 hover:bg-emerald-50, text-sm font-semibold slate-900, px-3 py-2.5 rounded-sm. Selected: emerald-600 bg white text font-bold border-2 border-emerald-600. Full: slate-100 bg slate-300 text border-2 border-slate-200 cursor-not-allowed. Time label: block font-bold. Availability label: text-xs slate-500 (selected: emerald-100, full: slate-300). Keep existing SLOTS array (18 slots 08:00-16:30), formatSlotLabel function, and getFullSlotIndices simulation.",
+    "6. Footer: border-t-2 border-slate-200 pt-6 mt-8. Back: slate-300 border-2 hover:bg-slate-50. Next: emerald-700 hover:emerald-800 uppercase font-bold."
+  ],
+  "acceptance_criteria": [
+    "Section header shows uppercase 'Step 2' label with formal h2 heading",
+    "Office dropdown has uppercase tracking-widest label and border-2 focus styling",
+    "Calendar has slate-800 month nav bar with white text and emerald-600 bottom border",
+    "Available weekday cells show emerald-700 text with border border-emerald-200",
+    "Slot limit callout with slate-500 left border appears before time slot grid",
+    "Time slots use border-2 styling with emerald-600 selection state",
+    "All existing calendar logic (Mon-Fri, holidays, slot availability) works unchanged",
+    "Component compiles without TypeScript errors"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev', complete step 1, arrive at step 2 - confirm uppercase section header and office dropdown styling",
+    "Select an office, observe calendar - verify slate-800 nav bar, slate-700 day headers, emerald-700 weekday cells with borders",
+    "Select a date - confirm slot limit callout appears and time slot grid renders with border-2 styling",
+    "Click various slots - verify available (white, border-2), selected (emerald-600 bg), and full (slate-100) states render correctly",
+    "Navigate back and forward - confirm state persistence and validation work",
+    "Test PhilHealth category - confirm only PhilHealth Yakap Clinic appears in office dropdown"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

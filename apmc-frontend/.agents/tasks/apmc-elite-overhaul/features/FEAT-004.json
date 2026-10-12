@@ -1,0 +1,28 @@
+{
+  "id": "FEAT-004",
+  "type": "feat",
+  "description": "Upgrade components/booking/BookingSidebarTracker.tsx to elite progress tracker with slate-900 header band (not emerald-700), emerald-600 bottom border, formal step styling (emerald-600 bg for active, emerald-50 for completed), and refined typography throughout",
+  "status": "pending",
+  "steps": [
+    "1. Modify components/booking/BookingSidebarTracker.tsx header band: Change from emerald-700 bg to slate-900 bg, py-4 px-5, border-b-4 border-emerald-600 (not border-b). Update header content: seal image + 'APMC OPD' (white text, font-bold, text-sm) + 'Appointment Progress' subtitle (slate-300, text-xs). Keep existing Image import and seal path.",
+    "2. Update step rows styling: Each step py-4 px-5, border-b border-slate-100 last:border-0. Pending: white bg, slate-400 text, slate-200 circle. Active: emerald-600 bg (not emerald-700), white text, white circle with emerald-600 number. Completed: emerald-50 bg, emerald-700 text, emerald-600 circle with white check. Keep existing step logic (isCompleted, isCurrent) and step array unchanged.",
+    "3. Update bottom reminder box: border-l-4 border-amber-500 bg-amber-50 mx-4 mb-4 px-4 py-3 text-xs amber-800. Keep existing reminder text."
+  ],
+  "acceptance_criteria": [
+    "Sidebar header has slate-900 bg with white text and emerald-600 bottom border (4px)",
+    "Active step uses emerald-600 bg (not emerald-700) with white text",
+    "Completed steps show emerald-50 bg with emerald-700 text and check icon",
+    "Pending steps remain white bg with slate-400 text",
+    "Amber reminder box at bottom uses border-l-4 accent styling",
+    "Component compiles without TypeScript errors and renders correctly in booking page sidebar"
+  ],
+  "verification": [
+    "Run 'npm run build' - must complete with 0 TypeScript errors",
+    "Run 'npm run dev' and navigate to /booking - confirm sidebar appears on left with slate-900 header",
+    "Advance through booking steps - verify step 1 shows emerald-600 bg (active), completed steps show emerald-50 bg with check marks, and pending steps show white bg",
+    "Confirm seal image, step labels, and amber reminder box all render correctly",
+    "Test responsive layout - sidebar should stack above content on mobile (<1024px)"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,30 @@
+{
+  "project_type": "Next.js 16.4.0 App Router with TypeScript, React 19.3.0, Tailwind CSS 4",
+  "language": "TypeScript with TSX (React 19.3.0 JSX transform)",
+  "build_system": "Next.js with Turbopack dev server, npm scripts for build/dev/lint",
+  "test_framework": "None configured - manual browser testing required",
+  "build_command": "npm run build",
+  "test_command": "npm run dev (manual browser verification at http://localhost:3000)",
+  "verification_instructions": "1. Run 'npm run build' to verify TypeScript compilation and no build errors. 2. Run 'npm run dev' and manually test each route in browser: / (landing), /booking (all 4 steps). 3. Verify responsive layout on mobile/tablet/desktop viewports. 4. Test timeout modal (wait 9min), navigation guards (back button during booking), and full booking flow completion.",
+  "snapshot_or_generated_files": "None - no snapshot tests or generated code to commit",
+  "environment_constraints": "Next.js 16.4.0 uses React canary releases (19.3.0) with new JSX transform. AGENTS.md warns this version has breaking changes from training data. Tailwind CSS 4 uses @import and @theme inline syntax in globals.css (no separate config file). Windows PowerShell environment. Logo asset confirmed at public/Amai_Pakpak_Medical_Center_seal.png",
+  "contribution_requirements": "Read node_modules/next/dist/docs/ before writing code per AGENTS.md. Must use Next.js 16 conventions (LayoutProps type from next, Image/Link from next components). All changes must compile with strict TypeScript. Follow existing component structure and import paths (@/ alias).",
+  "key_patterns": "- Layout: Header/Footer in components/layout/, page wrappers use min-h-screen flex flex-col, sticky header top-0 z-50\n- Booking flow: Multi-step state machine in app/booking/page.tsx with 4 views (CategorySelector, SchedulePickerView, PatientDetailsView, AppointmentTicketView)\n- TypeScript: Strict types from app/types/appointment.ts (AppointmentCategory union, conditional detail types)\n- Styling: Tailwind utility classes, emerald-700 brand primary, slate grays for institutional feel, rounded-sm for sharp corners\n- Components: Client components use 'use client' directive, server components default\n- Navigation: useRouter from next/navigation, Link from next/link\n- Images: Next.js Image component with priority for above-fold assets",
+  "relevant_files": [
+    "app/layout.tsx",
+    "app/globals.css",
+    "app/page.tsx",
+    "app/booking/page.tsx",
+    "app/types/appointment.ts",
+    "components/layout/Header.tsx",
+    "components/layout/Footer.tsx",
+    "components/terms/TermsAndConditionsView.tsx",
+    "components/booking/BookingSidebarTracker.tsx",
+    "components/booking/CategorySelector.tsx",
+    "components/booking/SchedulePickerView.tsx",
+    "components/booking/PatientDetailsView.tsx",
+    "components/booking/AppointmentTicketView.tsx",
+    "public/Amai_Pakpak_Medical_Center_seal.png"
+  ],
+  "directory_structure": "app/ (Next.js App Router pages & types), components/ (organized by layout/terms/booking domains), public/ (static assets including APMC seal logo), node_modules/next/dist/docs/ (version-specific Next.js documentation)"
+}

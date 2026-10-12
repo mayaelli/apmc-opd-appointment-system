@@ -42,7 +42,7 @@ export default function CategorySelector({
       </div>
 
       {/* Info callout */}
-      <div className="border-l-4 border-blue-500 bg-blue-50 p-4 text-sm text-blue-800 mb-6">
+      <div className="border-l-4 border-slate-400 bg-slate-50 p-4 text-sm text-slate-700 mb-6">
         Each category maintains independent scheduling and intake requirements.
       </div>
 

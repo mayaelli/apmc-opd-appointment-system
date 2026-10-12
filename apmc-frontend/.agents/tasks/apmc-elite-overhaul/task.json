@@ -1,0 +1,16 @@
+{
+  "task_id": "apmc-elite-overhaul",
+  "task_description": "Overhaul APMC OPD Appointment System frontend to world-class government-grade institutional standard with formal design, elite typography, structured layouts, and passport.gov.ph-inspired aesthetics across all 10 components",
+  "status": "pending",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003",
+    "FEAT-004",
+    "FEAT-005",
+    "FEAT-006",
+    "FEAT-007",
+    "FEAT-008"
+  ],
+  "blocked_reason": null
+}
