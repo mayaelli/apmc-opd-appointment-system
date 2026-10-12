@@ -1,0 +1,36 @@
+# Netlify configuration for APMC OPD Appointment System
+# Next.js 16 deployment settings
+
+[build]
+  # Your app is in the apmc-frontend subfolder
+  base = "apmc-frontend"
+  
+  # Next.js build command
+  command = "npm run build"
+  
+  # Next.js output directory
+  publish = "apmc-frontend/.next"
+
+# Next.js 16 requires these settings for server-side rendering
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Environment variables (set these in Netlify UI: Project Settings → Environment Variables)
+# Required:
+# NEXT_PUBLIC_SUPABASE_URL=https://hexfctwbahjlbcubuuno.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Redirects and rewrites for Next.js API routes
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
