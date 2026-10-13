@@ -76,33 +76,38 @@ export async function POST(request: Request) {
 
     console.log('✅ All validations passed');
 
-    // Strictly enforce the 2-slot limit right before saving
+    // Strictly enforce per-office slot limit right before saving
     console.log('🔍 Checking slot availability for:', { office, date, slot });
     
-    const { count, error: countError, data: debugData } = await supabase
-      .from('appointments')
-      .select('*', { count: 'exact', head: true })
-      .eq('office', office)
-      .eq('date', date)
-      .eq('slot', slot);
+    const [{ count, error: countError }, { data: officeData }] = await Promise.all([
+      supabase
+        .from('appointments')
+        .select('*', { count: 'exact', head: true })
+        .eq('office', office)
+        .eq('date', date)
+        .eq('slot', slot),
+      supabase
+        .from('offices')
+        .select('max_slots_per_interval')
+        .eq('name', office)
+        .single(),
+    ]);
 
-    console.log('🔍 Query result:', { count, error: countError, hasData: !!debugData });
+    const maxCapacity = officeData?.max_slots_per_interval ?? 2;
+
+    console.log('🔍 Query result:', { count, error: countError, maxCapacity });
 
     if (countError) {
       console.error('❌ Error checking slot availability:', countError);
-      console.error('Full error details:', JSON.stringify(countError, null, 2));
-      console.error('Error code:', countError.code);
-      console.error('Error hint:', countError.hint);
-      console.error('Error details:', countError.details);
       return NextResponse.json({ 
         error: 'Failed to verify slot availability',
         details: countError.message || countError.hint || 'Unknown database error'
       }, { status: 500 });
     }
 
-    if (count !== null && count >= 2) {
+    if (count !== null && count >= maxCapacity) {
       return NextResponse.json(
-        { error: 'Selected time slot is fully booked (Max 2 slots)' },
+        { error: `Selected time slot is fully booked (Max ${maxCapacity} slots)` },
         { status: 409 }
       );
     }

@@ -12,9 +12,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    // Verify credentials via pgcrypto RPC
+    // Verify credentials via pgcrypto RPC (login with office code)
     const { data, error } = await supabaseAdmin.rpc('verify_office_password', {
-      p_username: username.trim(),
+      p_code: username.trim().toUpperCase(),
       p_password: password,
     });
 

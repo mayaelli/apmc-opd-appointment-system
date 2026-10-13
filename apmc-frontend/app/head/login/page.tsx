@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function HeadLoginPage() {
-  redirect('/login');
+export default function HeadLoginRedirect() {
+  redirect('/portal/staff-access');
 }

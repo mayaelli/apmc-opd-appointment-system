@@ -14,20 +14,19 @@ async function requireAdmin() {
 }
 
 function generatePassword(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@$%^&*';
   const bytes = randomBytes(12);
   return Array.from(bytes).map((b) => chars[b % chars.length]).join('');
 }
 
 export async function GET() {
-  // cookies() call is outside try/catch so the prerender bail-out propagates correctly
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   try {
     const { data, error } = await supabaseAdmin
       .from('offices')
-      .select('id, name, username, slot_capacity, is_active, created_at')
+      .select('id, code, name, categories, is_active, max_slots_per_interval')
       .order('name');
 
     if (error) {
@@ -48,28 +47,30 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, username, slot_capacity } = body as {
+    const { code, name, categories, max_slots_per_interval } = body as {
+      code?: string;
       name?: string;
-      username?: string;
-      slot_capacity?: number;
+      categories?: string[];
+      max_slots_per_interval?: number;
     };
 
-    if (!name || !username) {
-      return NextResponse.json({ error: 'Name and username are required' }, { status: 400 });
+    if (!code || !name || !categories || categories.length === 0) {
+      return NextResponse.json({ error: 'Code, name, and at least one category are required' }, { status: 400 });
     }
 
     const generatedPassword = generatePassword();
 
     const { data, error } = await supabaseAdmin.rpc('create_office_with_password', {
+      p_code: code.trim().toUpperCase(),
       p_name: name.trim(),
-      p_username: username.trim().toLowerCase(),
+      p_categories: categories,
       p_password: generatedPassword,
-      p_slot_capacity: slot_capacity ?? 2,
+      p_max_slots: max_slots_per_interval ?? 2,
     });
 
     if (error) {
       if (error.code === '23505') {
-        return NextResponse.json({ error: 'Office name or username already exists' }, { status: 409 });
+        return NextResponse.json({ error: 'Office code or name already exists' }, { status: 409 });
       }
       console.error('Error creating office:', error);
       return NextResponse.json({ error: 'Failed to create office' }, { status: 500 });

@@ -169,18 +169,23 @@ export default function DoctorDashboardPage() {
   async function handleStatusUpdate(apptId: string, status: string) {
     setUpdatingId(apptId);
     try {
+      // Find current appointment status
+      const currentAppt = appointments.find((a) => a.id === apptId);
+      // If clicking the same status, toggle back to 'pending'
+      const newStatus = currentAppt?.status === status ? 'pending' : status;
+
       const res = await fetch(`/api/doctor/appointments/${apptId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
         setAppointments((prev) =>
-          prev.map((a) => (a.id === apptId ? { ...a, status } : a))
+          prev.map((a) => (a.id === apptId ? { ...a, status: newStatus } : a))
         );
         // Update modal if open
         if (selectedAppt?.id === apptId) {
-          setSelectedAppt((prev) => (prev ? { ...prev, status } : null));
+          setSelectedAppt((prev) => (prev ? { ...prev, status: newStatus } : null));
         }
       }
     } finally {
@@ -307,14 +312,15 @@ export default function DoctorDashboardPage() {
                 <button
                   key={s}
                   onClick={() => handleStatusUpdate(selectedAppt.id, s)}
-                  disabled={selectedAppt.status === s || updatingId === selectedAppt.id}
+                  disabled={updatingId === selectedAppt.id}
                   className={`px-3 py-1.5 rounded-sm text-xs font-bold uppercase tracking-wide transition-colors ${
                     selectedAppt.status === s
-                      ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      ? 'bg-slate-700 text-white ring-2 ring-slate-400'
                       : 'bg-emerald-700 hover:bg-emerald-800 text-white'
                   }`}
                 >
                   {s === 'no-show' ? 'No Show' : s.charAt(0).toUpperCase() + s.slice(1)}
+                  {selectedAppt.status === s && ' ✓'}
                 </button>
               ))}
             </div>
@@ -431,10 +437,14 @@ export default function DoctorDashboardPage() {
                           <button
                             key={s}
                             onClick={() => handleStatusUpdate(appt.id, s)}
-                            disabled={appt.status === s || updatingId === appt.id}
+                            disabled={updatingId === appt.id}
                             className={`px-2 py-1 rounded-sm text-xs font-bold uppercase transition-colors ${
                               appt.status === s
-                                ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                ? s === 'present'
+                                  ? 'bg-emerald-600 text-white ring-2 ring-emerald-400'
+                                  : s === 'no-show'
+                                  ? 'bg-red-600 text-white ring-2 ring-red-400'
+                                  : 'bg-blue-600 text-white ring-2 ring-blue-400'
                                 : s === 'present'
                                 ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
                                 : s === 'no-show'

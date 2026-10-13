@@ -25,11 +25,22 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { data: existingAppointments, error } = await supabase
-      .from('appointments')
-      .select('slot')
-      .eq('office', office)
-      .eq('date', date);
+    // Fetch the office's slot_capacity and existing appointments in parallel
+    const [{ data: officeData }, { data: existingAppointments, error }] = await Promise.all([
+      supabase
+        .from('offices')
+        .select('max_slots_per_interval')
+        .eq('name', office)
+        .single(),
+      supabase
+        .from('appointments')
+        .select('slot')
+        .eq('office', office)
+        .eq('date', date),
+    ]);
+
+    // Fall back to 2 if office not found in DB yet
+    const maxCapacity = officeData?.max_slots_per_interval ?? 2;
 
     if (error) {
       console.error('Error fetching appointments:', error);
@@ -46,8 +57,8 @@ export async function GET(request: Request) {
       return {
         slot,
         bookedCount,
-        maxCapacity: 2,
-        isAvailable: bookedCount < 2,
+        maxCapacity,
+        isAvailable: bookedCount < maxCapacity,
       };
     });
 

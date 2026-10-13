@@ -12,8 +12,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
     }
 
-    const expectedUsername = process.env.HEAD_USERNAME || '';
-    const expectedPassword = process.env.HEAD_PASSWORD || '';
+    // Fail fast if env vars are not configured — same pattern as lib/auth.ts for JWT_SECRET
+    if (!process.env.HEAD_USERNAME || !process.env.HEAD_PASSWORD) {
+      console.error('HEAD_USERNAME or HEAD_PASSWORD environment variables are not set');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    const expectedUsername = process.env.HEAD_USERNAME;
+    const expectedPassword = process.env.HEAD_PASSWORD;
 
     let usernameMatch = false;
     let passwordMatch = false;

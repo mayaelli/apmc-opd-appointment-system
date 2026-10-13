@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
     // --- Check doctor (office) ---
     const { data, error } = await supabaseAdmin.rpc('verify_office_password', {
-      p_code: username.trim().toUpperCase(),
+      p_username: username.trim().toUpperCase(),
       p_password: password,
     });
 

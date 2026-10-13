@@ -1,0 +1,11 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    "Missing /api/admin/logout — handleLogout() in admin dashboard POSTs to this route; session cookie is never cleared without it. Create the route (expire apmc_session with maxAge: 0).",
+    "Missing /api/head/logout — same problem for head dashboard. handleLogout() calls /api/head/logout.",
+    "Missing /api/doctor/me — doctor dashboard fetches this on mount to display office name; 404 causes the catch handler to redirect back to /doctor/login on every load, and the office name badge never populates.",
+    "Timing-safe bypass on absent env vars — ADMIN_USERNAME/ADMIN_PASSWORD and HEAD_USERNAME/HEAD_PASSWORD fall back to '' when unset. An attacker submitting empty username and password passes the timingSafeEqual check (0 === 0). Fix: throw/return 500 when the env var is absent, matching lib/auth.ts behavior for JWT_SECRET.",
+    "Slot capacity hardcoded at 2 in booking form — SchedulePickerView checks bookedCount >= 2 and displays Full (2/2). The slot_capacity column is per-office and admin-editable, but /api/offices returns only { id, name } so the booking form cannot use it. Offices with non-default capacity appear full prematurely."
+  ],
+  "reviewDoc": "c:\\Users\\Hamah\\Downloads\\WEB-SYSTEMS\\OPD-System\\apmc-frontend\\.agents\\tasks\\staff-review.md"
+}

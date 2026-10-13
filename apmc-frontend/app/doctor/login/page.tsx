@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
-export default function DoctorLoginPage() {
-  redirect('/login');
+export default function DoctorLoginRedirect() {
+  redirect('/portal/staff-access');
 }

@@ -3,8 +3,8 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
-// 'pending' is intentionally excluded — doctors can only advance status forward
-const VALID_STATUSES = ['present', 'no-show', 'done'] as const;
+// Doctors can set status forward or toggle back to 'pending'
+const VALID_STATUSES = ['pending', 'present', 'no-show', 'done'] as const;
 type AppointmentStatus = (typeof VALID_STATUSES)[number];
 
 export async function PATCH(

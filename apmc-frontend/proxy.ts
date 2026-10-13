@@ -24,21 +24,21 @@ export async function proxy(request: NextRequest) {
     NextResponse.redirect(new URL(path, request.url));
 
   if (pathname.startsWith('/doctor/dashboard')) {
-    if (!token) return loginRedirect('/login');
+    if (!token) return loginRedirect('/portal/staff-access');
     const payload = await getPayload(token);
-    if (!payload || payload.role !== 'doctor') return loginRedirect('/login');
+    if (!payload || payload.role !== 'doctor') return loginRedirect('/portal/staff-access');
   }
 
   if (pathname.startsWith('/head/dashboard')) {
-    if (!token) return loginRedirect('/login');
+    if (!token) return loginRedirect('/portal/staff-access');
     const payload = await getPayload(token);
-    if (!payload || payload.role !== 'opd_head') return loginRedirect('/login');
+    if (!payload || payload.role !== 'opd_head') return loginRedirect('/portal/staff-access');
   }
 
   if (pathname.startsWith('/admin/dashboard')) {
-    if (!token) return loginRedirect('/login');
+    if (!token) return loginRedirect('/portal/staff-access');
     const payload = await getPayload(token);
-    if (!payload || payload.role !== 'admin') return loginRedirect('/login');
+    if (!payload || payload.role !== 'admin') return loginRedirect('/portal/staff-access');
   }
 
   return NextResponse.next();
