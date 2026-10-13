@@ -66,6 +66,20 @@ Build tool: Next.js 16.4.0 (Turbopack)
 
 3. **`cookies()` inside try/catch caught the prerender bail-out throw** — Moved all `cookies()` / `requireAdmin()` / `requireHead()` calls to BEFORE the `try` block in GET handlers so the bail-out throw propagates correctly.
 
+## Review Iteration Fixes (staff-review.json)
+
+4. **Fallback JWT secret removed from `lib/auth.ts`** — Replaced `|| 'fallback-...'` with a startup assertion that throws `Error` if `JWT_SECRET` is unset, so misconfigured deployments fail fast.
+
+5. **`proxy.ts` fallback secret removed** — Now returns `null` (denies all access) when `JWT_SECRET` is absent, matching the lib/auth.ts behavior.
+
+6. **Missing `/api/doctor/me` route created** — `app/api/doctor/me/route.ts` reads the session cookie and returns `{ officeName, officeId }` from the JWT payload. The doctor dashboard was already calling this on mount; it now resolves correctly.
+
+7. **`cookies()` moved outside `try/catch` in status route** — Fixed the prerender bail-out contract violation in `app/api/doctor/appointments/[id]/status/route.ts`.
+
+8. **Office scope guard added to PATCH** — Added `.eq('office', payload.officeName)` to the status update query so a doctor can only modify appointments in their own office.
+
+9. **`'pending'` removed from `VALID_STATUSES`** — The allowed transitions are now `present | no-show | done` only, matching the plan spec.
+
 ## Route Summary (29 routes)
 All routes in the expected build output are present:
 - Public: `/`, `/booking`, plus all API routes
