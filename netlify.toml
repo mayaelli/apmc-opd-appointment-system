@@ -8,8 +8,8 @@
   # Next.js build command
   command = "npm run build"
   
-  # Next.js output directory
-  publish = "apmc-frontend/.next"
+  # Next.js output directory (relative to base directory)
+  publish = ".next"
 
 # Next.js 16 requires these settings for server-side rendering
 [[plugins]]
