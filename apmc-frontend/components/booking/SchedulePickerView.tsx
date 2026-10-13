@@ -15,8 +15,6 @@ interface SchedulePickerViewProps {
   onBack: () => void;
 }
 
-const PHILHEALTH_OFFICE = 'PhilHealth Yakap Clinic';
-
 // 18 slots: 08:00 – 16:30 in 30-min increments
 const TIME_SLOTS: string[] = [];
 for (let h = 8; h <= 16; h++) {
@@ -119,17 +117,23 @@ export default function SchedulePickerView({
 
   // Dynamic offices and holidays from API
   const [fetchedOffices, setFetchedOffices] = useState<string[]>([]);
+  const [officeCapacityMap, setOfficeCapacityMap] = useState<Record<string, number>>({});
   const [holidaySet, setHolidaySet] = useState<Set<string>>(new Set());
 
   // Fetch offices and holidays on mount
   useEffect(() => {
     Promise.all([
-      fetch('/api/offices').then((r) => r.json()),
+      fetch('/api/offices?category=' + encodeURIComponent(category)).then((r) => r.json()),
       fetch('/api/holidays').then((r) => r.json()),
     ])
       .then(([officesData, holidaysData]) => {
         if (officesData && Array.isArray(officesData)) {
           setFetchedOffices(officesData.map((o: { name: string }) => o.name));
+          const capMap: Record<string, number> = {};
+          officesData.forEach((o: { name: string; max_slots_per_interval: number }) => {
+            capMap[o.name] = o.max_slots_per_interval ?? 2;
+          });
+          setOfficeCapacityMap(capMap);
         }
         if (holidaysData?.dates && Array.isArray(holidaysData.dates)) {
           setHolidaySet(new Set<string>(holidaysData.dates));
@@ -138,12 +142,7 @@ export default function SchedulePickerView({
       .catch(() => {
         // Fallback: keep empty state; calendar remains functional
       });
-  }, []);
-
-  const offices = useMemo(() => {
-    if (category === 'philhealth-yakap') return [PHILHEALTH_OFFICE];
-    return fetchedOffices;
-  }, [category, fetchedOffices]);
+  }, [category]);
 
   // Fetch real slot availability from API when office and date are selected
   useEffect(() => {
@@ -287,7 +286,7 @@ export default function SchedulePickerView({
           className="w-full border-2 border-slate-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 rounded-sm px-4 py-3 text-sm font-medium text-slate-900 bg-white focus:outline-none"
         >
           <option value="">— Select an office —</option>
-          {offices.map((o) => (
+          {fetchedOffices.map((o) => (
             <option key={o} value={o}>{o}</option>
           ))}
         </select>
@@ -393,7 +392,7 @@ export default function SchedulePickerView({
       {/* Slot limit callout */}
       {selectedDate && (
         <div className="border-l-4 border-slate-500 bg-slate-50 p-4 text-sm text-slate-700 font-medium">
-          ⚠ Slots are strictly limited to 2 patients per 30-minute interval. Fully booked slots cannot be selected.
+          ⚠ Slots are strictly limited to {officeCapacityMap[selectedOffice] ?? 2} patients per 30-minute interval. Fully booked slots cannot be selected.
         </div>
       )}
 
@@ -413,7 +412,8 @@ export default function SchedulePickerView({
               {SLOTS.map((slot) => {
                 const fullSlotFormat = convertToFullSlotFormat(slot);
                 const bookedCount = slotAvailability[fullSlotFormat] || 0;
-                const isFull = bookedCount >= 2;
+                const capacity = officeCapacityMap[selectedOffice] ?? 2;
+                const isFull = bookedCount >= capacity;
                 const isSelected = selectedSlot === fullSlotFormat;
 
                 return (
@@ -431,11 +431,11 @@ export default function SchedulePickerView({
                 >
                   <span className="block font-bold">{formatSlotLabel(slot)}</span>
                   <span className={`text-xs mt-0.5 ${isSelected ? 'text-emerald-100' : isFull ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {isFull ? `Full (2/2)` : `Available (${bookedCount}/2)`}
+                    {isFull ? `Full (${capacity}/${capacity})` : `Available (${bookedCount}/${capacity})`}
                   </span>
                 </button>
               );
-            })}
+              })}
           </div>
           )}
         </div>
