@@ -90,6 +90,7 @@ export default function AdminDashboardPage() {
   const [modalUsername, setModalUsername] = useState('');
   const [copiedPass, setCopiedPass] = useState(false);
   const [copiedBoth, setCopiedBoth] = useState(false);
+  const [credentialOffice, setCredentialOffice] = useState<Office | null>(null);
 
   // Add office form
   const [newOfficeName, setNewOfficeName] = useState('');
@@ -191,6 +192,10 @@ export default function AdminDashboardPage() {
       if (!res.ok) { setOfficeFormError(data.error || 'Failed to create office'); return; }
       setGeneratedPassword(data.generated_password);
       setModalUsername(newOfficeCode);
+      setCredentialOffice(null);
+      setShowPassword(false);
+      setCopiedPass(false);
+      setCopiedBoth(false);
       setShowAddOffice(false);
       setNewOfficeName('');
       setNewOfficeCode('');
@@ -256,17 +261,26 @@ export default function AdminDashboardPage() {
     fetchHolidays();
   }
 
-  async function handleResetPassword(office: Office) {
+  function handleOpenCredentials(office: Office) {
+    setCredentialOffice(office);
+    setModalUsername(office.code);
+    setGeneratedPassword('');
+    setShowPassword(false);
+    setCopiedPass(false);
+    setCopiedBoth(false);
+    setShowPasswordModal(true);
+  }
+
+  async function handleGeneratePassword() {
+    if (!credentialOffice) return;
     const res = await fetch('/api/admin/credentials', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ officeId: office.id }),
+      body: JSON.stringify({ officeId: credentialOffice.id }),
     });
     const data = await res.json();
     if (res.ok) {
       setGeneratedPassword(data.generated_password);
-      setModalUsername(office.code);
-      setShowPasswordModal(true);
     }
   }
 
@@ -311,75 +325,73 @@ export default function AdminDashboardPage() {
         </div>
       </header>
 
-      {/* Generated Password Modal */}
+      {/* Office Credentials Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-8 border-t-[6px] border-emerald-600">
-            <h2 className="text-lg font-bold text-slate-900 mb-1">Generated Password</h2>
-            <p className="text-sm text-slate-600 mb-5">
-              Save these credentials &mdash; the password won&apos;t be shown again.
-            </p>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">Office Credentials</h2>
+            <p className="text-sm text-slate-500 mb-5">Manage login credentials for this office.</p>
 
-            {/* Username row */}
-            <div className="mb-3">
+            {/* Username row - always visible */}
+            <div className="mb-5">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Username</p>
               <div className="bg-slate-100 rounded-sm px-4 py-3 font-mono text-sm text-slate-900 select-all">
                 {modalUsername}
               </div>
             </div>
 
-            {/* Password row */}
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Password</p>
-              <div className="bg-slate-900 rounded-sm px-4 py-3 flex items-center justify-between gap-3">
-                <code className="text-emerald-400 font-mono text-sm break-all">
-                  {showPassword ? generatedPassword : '\u2022'.repeat(generatedPassword.length)}
-                </code>
+            {generatedPassword === '' ? (
+              /* No password generated yet — show the generate prompt */
+              <div className="border border-slate-200 rounded-sm p-4 mb-5">
+                <p className="text-sm text-slate-600 mb-1">The current password is stored as a hash and cannot be retrieved.</p>
+                <p className="text-xs text-amber-700 font-semibold mb-3">⚠ Generating a new password will replace the existing one.</p>
                 <button
                   type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  className="shrink-0 text-xs text-slate-300 hover:text-white px-2 py-1 rounded-sm border border-slate-600 hover:border-slate-400 transition-colors"
-                  title={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={handleGeneratePassword}
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-sm text-sm"
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  Generate New Password
                 </button>
               </div>
-            </div>
-
-            {/* Copy buttons */}
-            <div className="flex gap-3 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(generatedPassword);
-                  setCopiedPass(true);
-                  setTimeout(() => setCopiedPass(false), 2000);
-                }}
-                className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-sm transition-colors"
-              >
-                {copiedPass ? '\u2713 Copied!' : 'Copy Password'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(`Username: ${modalUsername}\nPassword: ${generatedPassword}`);
-                  setCopiedBoth(true);
-                  setTimeout(() => setCopiedBoth(false), 2000);
-                }}
-                className="flex-1 text-sm bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-sm transition-colors"
-              >
-                {copiedBoth ? '\u2713 Copied!' : 'Copy Both'}
-              </button>
-            </div>
+            ) : (
+              /* Password generated — show masked password + copy options */
+              <div className="mb-5">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Password</p>
+                <p className="text-xs text-slate-400 mb-2">Save this — it won&apos;t be shown again after you close.</p>
+                <div className="bg-slate-900 rounded-sm px-4 py-3 flex items-center justify-between gap-3 mb-3">
+                  <code className="text-emerald-400 font-mono text-sm break-all">
+                    {showPassword ? generatedPassword : '\u2022'.repeat(generatedPassword.length)}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="shrink-0 text-xs text-slate-300 hover:text-white px-2 py-1 rounded-sm border border-slate-600 hover:border-slate-400 transition-colors"
+                  >
+                    {showPassword ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { navigator.clipboard.writeText(generatedPassword); setCopiedPass(true); setTimeout(() => setCopiedPass(false), 2000); }}
+                    className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-sm transition-colors"
+                  >
+                    {copiedPass ? '\u2713 Copied!' : 'Copy Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { navigator.clipboard.writeText(`Username: ${modalUsername}\nPassword: ${generatedPassword}`); setCopiedBoth(true); setTimeout(() => setCopiedBoth(false), 2000); }}
+                    className="flex-1 text-sm bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-sm transition-colors"
+                  >
+                    {copiedBoth ? '\u2713 Copied!' : 'Copy Both'}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               type="button"
-              onClick={() => {
-                setShowPasswordModal(false);
-                setCopiedPass(false);
-                setCopiedBoth(false);
-                setShowPassword(false);
-              }}
+              onClick={() => { setShowPasswordModal(false); setCopiedPass(false); setCopiedBoth(false); setShowPassword(false); setGeneratedPassword(''); setCredentialOffice(null); }}
               className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-sm"
             >
               Done
@@ -740,10 +752,10 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => handleResetPassword(office)}
-                          className="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-3 py-1.5 rounded-sm"
+                          onClick={() => handleOpenCredentials(office)}
+                          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-sm"
                         >
-                          Reset Password
+                          Credentials
                         </button>
                       </td>
                     </tr>
