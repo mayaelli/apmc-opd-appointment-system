@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth';
 
 export async function GET() {
-  // cookies() outside try/catch so prerender bail-out propagates
+  // cookies() outside try/catch so prerender bail-out throw propagates
   const cookieStore = await cookies();
   const token = cookieStore.get('apmc_session')?.value;
 
@@ -13,17 +13,11 @@ export async function GET() {
 
   const payload = await verifyToken(token);
   if (!payload || payload.role !== 'doctor') {
-    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  try {
-    return NextResponse.json({
-      officeName: payload.officeName,
-      officeId: payload.officeId,
-      username: payload.username,
-    });
-  } catch (err) {
-    console.error('Doctor me error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+  return NextResponse.json({
+    officeName: payload.officeName ?? null,
+    officeId: payload.officeId ?? null,
+  });
 }

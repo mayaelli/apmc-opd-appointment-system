@@ -12,9 +12,14 @@ export interface SessionPayload {
   exp?: number;
 }
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-dev-secret-change-me-in-production'
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET environment variable is not set. ' +
+    'Set it in .env before starting the server.'
+  );
+}
+
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function signToken(
   payload: Omit<SessionPayload, 'iat' | 'exp'>,
