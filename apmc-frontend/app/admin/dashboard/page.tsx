@@ -92,6 +92,7 @@ export default function AdminDashboardPage() {
   const [copiedBoth, setCopiedBoth] = useState(false);
   const [credentialOffice, setCredentialOffice] = useState<Office | null>(null);
   const [credentialsLoading, setCredentialsLoading] = useState(false);
+  const [wasJustGenerated, setWasJustGenerated] = useState(false);
 
   // Add office form
   const [newOfficeName, setNewOfficeName] = useState('');
@@ -269,6 +270,7 @@ export default function AdminDashboardPage() {
     setShowPassword(false);
     setCopiedPass(false);
     setCopiedBoth(false);
+    setWasJustGenerated(false);
     setCredentialsLoading(true);
     setShowPasswordModal(true);
 
@@ -290,6 +292,7 @@ export default function AdminDashboardPage() {
     const data = await res.json();
     if (res.ok) {
       setGeneratedPassword(data.generated_password);
+      setWasJustGenerated(true);
     }
   }
 
@@ -374,7 +377,9 @@ export default function AdminDashboardPage() {
               /* Password generated — show masked password + copy options */
               <div className="mb-5">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Password</p>
-                <p className="text-xs text-slate-400 mb-2">Save this — it won&apos;t be shown again after you close.</p>
+                {wasJustGenerated && (
+                  <p className="text-xs text-slate-400 mb-2">Save this — it won&apos;t be shown again after you close.</p>
+                )}
                 <div className="bg-slate-900 rounded-sm px-4 py-3 flex items-center justify-between gap-3 mb-3">
                   <code className="text-emerald-400 font-mono text-sm break-all">
                     {showPassword ? generatedPassword : '\u2022'.repeat(generatedPassword.length)}
@@ -408,7 +413,7 @@ export default function AdminDashboardPage() {
 
             <button
               type="button"
-              onClick={() => { setShowPasswordModal(false); setCopiedPass(false); setCopiedBoth(false); setShowPassword(false); setGeneratedPassword(''); setCredentialOffice(null); }}
+              onClick={() => { setShowPasswordModal(false); setCopiedPass(false); setCopiedBoth(false); setShowPassword(false); setGeneratedPassword(''); setCredentialOffice(null); setWasJustGenerated(false); }}
               className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-sm"
             >
               Done

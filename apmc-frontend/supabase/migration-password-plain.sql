@@ -18,7 +18,7 @@ LANGUAGE sql SECURITY DEFINER AS $$
 $$;
 
 -- 3. Update reset_office_password to also store plaintext
-CREATE OR REPLACE FUNCTION reset_office_password(p_office_id uuid, p_new_password text)
+CREATE OR REPLACE FUNCTION reset_office_password(p_office_id bigint, p_new_password text)
 RETURNS void
 LANGUAGE sql SECURITY DEFINER AS $$
   UPDATE offices
@@ -29,7 +29,8 @@ $$;
 
 -- 4. Keep RPC permissions locked down (service role only)
 REVOKE EXECUTE ON FUNCTION create_office_with_password(text, text, text, integer) FROM PUBLIC, anon, authenticated;
-REVOKE EXECUTE ON FUNCTION reset_office_password(uuid, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION reset_office_password(bigint, text) FROM PUBLIC, anon, authenticated;
 
--- 5. Backfill existing seed offices with their known plain password
-UPDATE offices SET password_plain = 'Welcome@123' WHERE password_plain IS NULL;
+-- 5. Pre-existing offices are left with password_plain = NULL intentionally.
+--    The admin credentials modal shows a "Generate New Password" prompt for NULL rows.
+--    Do NOT backfill with a hardcoded value — existing passwords are unknown.
