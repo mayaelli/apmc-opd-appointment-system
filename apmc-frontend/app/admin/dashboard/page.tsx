@@ -6,13 +6,15 @@ import Image from 'next/image';
 
 type Tab = 'overview' | 'offices' | 'holidays' | 'credentials';
 
+type OfficeCategory = 'new-checkup' | 'follow-up' | 'philhealth-yakap';
+
 interface Office {
-  id: string;
+  id: number;
+  code: string;
   name: string;
-  username: string;
-  slot_capacity: number;
+  category: OfficeCategory;
   is_active: boolean;
-  created_at: string;
+  max_slots_per_interval: number;
 }
 
 interface Holiday {
@@ -28,6 +30,12 @@ interface Stats {
   byStatus: { pending: number; present: number; done: number; noShow: number };
   byOffice: { name: string; count: number }[];
 }
+
+const CATEGORY_LABELS: Record<OfficeCategory, string> = {
+  'new-checkup': 'New Checkup / General Consultation',
+  'follow-up': 'Follow-up',
+  'philhealth-yakap': 'PhilHealth Yakap Clinic',
+};
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -45,15 +53,17 @@ export default function AdminDashboardPage() {
 
   // Add office form
   const [newOfficeName, setNewOfficeName] = useState('');
-  const [newOfficeUsername, setNewOfficeUsername] = useState('');
-  const [newOfficeCapacity, setNewOfficeCapacity] = useState(2);
+  const [newOfficeCode, setNewOfficeCode] = useState('');
+  const [newOfficeCategory, setNewOfficeCategory] = useState<OfficeCategory>('new-checkup');
+  const [newOfficeMaxSlots, setNewOfficeMaxSlots] = useState(2);
   const [officeFormError, setOfficeFormError] = useState('');
   const [officeFormLoading, setOfficeFormLoading] = useState(false);
 
   // Edit office form
   const [editName, setEditName] = useState('');
-  const [editUsername, setEditUsername] = useState('');
-  const [editCapacity, setEditCapacity] = useState(2);
+  const [editCode, setEditCode] = useState('');
+  const [editCategory, setEditCategory] = useState<OfficeCategory>('new-checkup');
+  const [editMaxSlots, setEditMaxSlots] = useState(2);
   const [editFormError, setEditFormError] = useState('');
   const [editFormLoading, setEditFormLoading] = useState(false);
 
@@ -103,16 +113,20 @@ export default function AdminDashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          code: newOfficeCode,
           name: newOfficeName,
-          username: newOfficeUsername,
-          slot_capacity: newOfficeCapacity,
+          category: newOfficeCategory,
+          max_slots_per_interval: newOfficeMaxSlots,
         }),
       });
       const data = await res.json();
       if (!res.ok) { setOfficeFormError(data.error || 'Failed to create office'); return; }
       setGeneratedPassword(data.generated_password);
       setShowAddOffice(false);
-      setNewOfficeName(''); setNewOfficeUsername(''); setNewOfficeCapacity(2);
+      setNewOfficeName('');
+      setNewOfficeCode('');
+      setNewOfficeCategory('new-checkup');
+      setNewOfficeMaxSlots(2);
       setShowPasswordModal(true);
       fetchOffices();
     } finally {
@@ -129,7 +143,12 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/admin/offices/${editingOffice.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName, username: editUsername, slot_capacity: editCapacity }),
+        body: JSON.stringify({
+          code: editCode,
+          name: editName,
+          category: editCategory,
+          max_slots_per_interval: editMaxSlots,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setEditFormError(data.error || 'Failed to update office'); return; }
@@ -256,31 +275,45 @@ export default function AdminDashboardPage() {
             <h2 className="text-lg font-bold text-slate-900 mb-4">Edit Office</h2>
             <form onSubmit={handleEditOffice} className="space-y-4">
               <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Code</label>
+                <input
+                  value={editCode}
+                  onChange={(e) => setEditCode(e.target.value.toUpperCase())}
+                  required
+                  placeholder="e.g. GEN-CONSULT"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none font-mono"
+                />
+              </div>
+              <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Name</label>
                 <input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   required
+                  placeholder="e.g. General Consultation"
                   className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Username</label>
-                <input
-                  value={editUsername}
-                  onChange={(e) => setEditUsername(e.target.value)}
-                  required
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
-                />
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Category</label>
+                <select
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value as OfficeCategory)}
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none bg-white"
+                >
+                  <option value="new-checkup">New Checkup / General Consultation</option>
+                  <option value="follow-up">Follow-up</option>
+                  <option value="philhealth-yakap">PhilHealth Yakap Clinic</option>
+                </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Slot Capacity</label>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Max Slots per Interval</label>
                 <input
                   type="number"
                   min={1}
                   max={20}
-                  value={editCapacity}
-                  onChange={(e) => setEditCapacity(Number(e.target.value))}
+                  value={editMaxSlots}
+                  onChange={(e) => setEditMaxSlots(Number(e.target.value))}
                   className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
                 />
               </div>
@@ -389,38 +422,50 @@ export default function AdminDashboardPage() {
             {showAddOffice && (
               <div className="bg-white border border-slate-200 rounded-sm p-5">
                 <h3 className="text-sm font-bold text-slate-900 mb-4">New Office</h3>
-                <form onSubmit={handleAddOffice} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <form onSubmit={handleAddOffice} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Code</label>
+                    <input
+                      value={newOfficeCode}
+                      onChange={(e) => setNewOfficeCode(e.target.value.toUpperCase())}
+                      required
+                      placeholder="e.g. GEN-CONSULT"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none font-mono"
+                    />
+                  </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Office Name</label>
                     <input
                       value={newOfficeName}
                       onChange={(e) => setNewOfficeName(e.target.value)}
                       required
-                      placeholder="e.g. Cardiology"
+                      placeholder="e.g. General Consultation"
                       className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Username</label>
-                    <input
-                      value={newOfficeUsername}
-                      onChange={(e) => setNewOfficeUsername(e.target.value)}
-                      required
-                      placeholder="e.g. cardiology"
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
-                    />
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Category</label>
+                    <select
+                      value={newOfficeCategory}
+                      onChange={(e) => setNewOfficeCategory(e.target.value as OfficeCategory)}
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none bg-white"
+                    >
+                      <option value="new-checkup">New Checkup / General Consultation</option>
+                      <option value="follow-up">Follow-up</option>
+                      <option value="philhealth-yakap">PhilHealth Yakap Clinic</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Slot Capacity</label>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Max Slots per Interval</label>
                     <input
                       type="number" min={1} max={20}
-                      value={newOfficeCapacity}
-                      onChange={(e) => setNewOfficeCapacity(Number(e.target.value))}
+                      value={newOfficeMaxSlots}
+                      onChange={(e) => setNewOfficeMaxSlots(Number(e.target.value))}
                       className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
                     />
                   </div>
-                  {officeFormError && <p className="col-span-3 text-red-600 text-sm">{officeFormError}</p>}
-                  <div className="col-span-3 flex gap-3">
+                  {officeFormError && <p className="col-span-2 text-red-600 text-sm">{officeFormError}</p>}
+                  <div className="col-span-2 flex gap-3">
                     <button
                       type="submit"
                       disabled={officeFormLoading}
@@ -440,7 +485,7 @@ export default function AdminDashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-200">
-                    {['Name', 'Username', 'Capacity', 'Status', 'Actions'].map((h) => (
+                    {['Code', 'Name', 'Category', 'Max Slots', 'Status', 'Actions'].map((h) => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
@@ -448,9 +493,10 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-slate-100">
                   {offices.map((office) => (
                     <tr key={office.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-700 font-bold">{office.code}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{office.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-600">{office.username}</td>
-                      <td className="px-4 py-3 text-slate-600">{office.slot_capacity}</td>
+                      <td className="px-4 py-3 text-slate-600 text-xs">{CATEGORY_LABELS[office.category] ?? office.category}</td>
+                      <td className="px-4 py-3 text-slate-600">{office.max_slots_per_interval}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-sm text-xs font-bold ${
                           office.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
@@ -463,9 +509,10 @@ export default function AdminDashboardPage() {
                           <button
                             onClick={() => {
                               setEditingOffice(office);
+                              setEditCode(office.code);
                               setEditName(office.name);
-                              setEditUsername(office.username);
-                              setEditCapacity(office.slot_capacity);
+                              setEditCategory(office.category);
+                              setEditMaxSlots(office.max_slots_per_interval);
                               setEditFormError('');
                             }}
                             className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-sm"
@@ -566,7 +613,7 @@ export default function AdminDashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-200">
-                    {['Office Name', 'Username', 'Status', 'Action'].map((h) => (
+                    {['Code', 'Office Name', 'Status', 'Action'].map((h) => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-bold text-slate-600 uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
@@ -574,8 +621,8 @@ export default function AdminDashboardPage() {
                 <tbody className="divide-y divide-slate-100">
                   {offices.map((office) => (
                     <tr key={office.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-mono text-xs text-slate-700 font-bold">{office.code}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{office.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-slate-600">{office.username}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-sm text-xs font-bold ${
                           office.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
