@@ -21,10 +21,10 @@ function generatePassword(): string {
 
 // POST: generate a new password for an office
 export async function POST(request: Request) {
-  try {
-    const admin = await requireAdmin();
-    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  try {
     const body = await request.json();
     const { officeId } = body as { officeId?: string };
 

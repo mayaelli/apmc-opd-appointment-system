@@ -81,20 +81,6 @@ function convertToFullSlotFormat(slot: string): string {
   return `${startFormatted} - ${endFormatted}`;
 }
 
-function getFullSlotIndices(dateStr: string): Set<number> {
-  if (!dateStr) return new Set();
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash += dateStr.charCodeAt(i);
-  }
-  const indices = new Set<number>();
-  const candidates = [hash % 18, (hash * 7) % 18, (hash * 13) % 18];
-  for (const idx of candidates) {
-    indices.add(idx);
-  }
-  return indices;
-}
-
 function padDate(n: number): string {
   return String(n).padStart(2, '0');
 }
@@ -251,8 +237,6 @@ export default function SchedulePickerView({
 
     return weeks;
   }, [calendarYear, calendarMonth, today, holidaySet]);
-
-  const fullSlotIndices = useMemo(() => getFullSlotIndices(selectedDate), [selectedDate]);
 
   const canGoBack = calendarYear > today.getFullYear() ||
     (calendarYear === today.getFullYear() && calendarMonth > today.getMonth());
