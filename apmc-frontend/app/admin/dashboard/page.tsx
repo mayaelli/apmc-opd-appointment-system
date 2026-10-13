@@ -91,6 +91,7 @@ export default function AdminDashboardPage() {
   const [copiedPass, setCopiedPass] = useState(false);
   const [copiedBoth, setCopiedBoth] = useState(false);
   const [credentialOffice, setCredentialOffice] = useState<Office | null>(null);
+  const [credentialsLoading, setCredentialsLoading] = useState(false);
 
   // Add office form
   const [newOfficeName, setNewOfficeName] = useState('');
@@ -261,14 +262,22 @@ export default function AdminDashboardPage() {
     fetchHolidays();
   }
 
-  function handleOpenCredentials(office: Office) {
+  async function handleOpenCredentials(office: Office) {
     setCredentialOffice(office);
     setModalUsername(office.code);
     setGeneratedPassword('');
     setShowPassword(false);
     setCopiedPass(false);
     setCopiedBoth(false);
+    setCredentialsLoading(true);
     setShowPasswordModal(true);
+
+    const res = await fetch(`/api/admin/credentials?officeId=${office.id}`);
+    const data = await res.json();
+    setCredentialsLoading(false);
+    if (res.ok && data.password_plain) {
+      setGeneratedPassword(data.password_plain);
+    }
   }
 
   async function handleGeneratePassword() {
@@ -342,17 +351,25 @@ export default function AdminDashboardPage() {
 
             {generatedPassword === '' ? (
               /* No password generated yet — show the generate prompt */
-              <div className="border border-slate-200 rounded-sm p-4 mb-5">
-                <p className="text-sm text-slate-600 mb-1">The current password is stored as a hash and cannot be retrieved.</p>
-                <p className="text-xs text-amber-700 font-semibold mb-3">⚠ Generating a new password will replace the existing one.</p>
-                <button
-                  type="button"
-                  onClick={handleGeneratePassword}
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-sm text-sm"
-                >
-                  Generate New Password
-                </button>
-              </div>
+              <>
+                {credentialsLoading ? (
+                  <div className="border border-slate-200 rounded-sm p-4 mb-5 text-center text-sm text-slate-500">
+                    Fetching current password…
+                  </div>
+                ) : (
+                  <div className="border border-slate-200 rounded-sm p-4 mb-5">
+                    <p className="text-sm text-slate-600 mb-1">The current password is stored as a hash and cannot be retrieved.</p>
+                    <p className="text-xs text-amber-700 font-semibold mb-3">⚠ Generating a new password will replace the existing one.</p>
+                    <button
+                      type="button"
+                      onClick={handleGeneratePassword}
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-sm text-sm"
+                    >
+                      Generate New Password
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               /* Password generated — show masked password + copy options */
               <div className="mb-5">
