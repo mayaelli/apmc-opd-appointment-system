@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -58,9 +58,43 @@ export default function DoctorDashboardPage() {
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(COUNTDOWN_DURATION);
 
-  // Fetch office name
+  // Timer refs — stored outside React state so mutations don't cause re-renders.
+  const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // resetTimers is stable across renders (useCallback with no deps that change).
+  // It uses refs for timers so it never captures stale closure values.
+  const resetTimers = useCallback(() => {
+    setShowTimeoutWarning(false);
+    if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+    if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+
+    warningTimerRef.current = setTimeout(() => {
+      setShowTimeoutWarning(true);
+      setRemainingSeconds(COUNTDOWN_DURATION);
+
+      countdownIntervalRef.current = setInterval(() => {
+        setRemainingSeconds((prev) => {
+          if (prev <= 1) {
+            if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }, WARNING_TIME);
+
+    inactivityTimerRef.current = setTimeout(async () => {
+      await fetch('/api/doctor/logout', { method: 'POST' });
+      router.push('/doctor/login');
+    }, TOTAL_TIME);
+  }, [router]);
+
+  // Fetch office name on mount
   useEffect(() => {
-    // Set today's date on client side to avoid prerender error
+    // Set today's date on client side to avoid prerender mismatch
     setDate(new Date().toISOString().split('T')[0]);
 
     fetch('/api/doctor/me')
@@ -77,7 +111,7 @@ export default function DoctorDashboardPage() {
       .catch(() => router.push('/doctor/login'));
   }, [router]);
 
-  // Fetch appointments
+  // Fetch appointments when date changes
   const fetchAppointments = useCallback(async (selectedDate: string) => {
     setLoading(true);
     try {
@@ -100,38 +134,11 @@ export default function DoctorDashboardPage() {
   }, [date, fetchAppointments]);
 
   // 15-minute idle timeout
+  // handleActivity only resets when the warning is NOT showing — ordinary user
+  // activity should not dismiss the modal.  The "Extend Session" button calls
+  // resetTimers() directly (see onClick below) so it always works regardless of
+  // the React state update timing.
   useEffect(() => {
-    let warningTimer: ReturnType<typeof setTimeout>;
-    let inactivityTimer: ReturnType<typeof setTimeout>;
-    let countdownInterval: ReturnType<typeof setInterval>;
-
-    const resetTimers = () => {
-      setShowTimeoutWarning(false);
-      clearTimeout(warningTimer);
-      clearTimeout(inactivityTimer);
-      clearInterval(countdownInterval);
-
-      warningTimer = setTimeout(() => {
-        setShowTimeoutWarning(true);
-        setRemainingSeconds(COUNTDOWN_DURATION);
-
-        countdownInterval = setInterval(() => {
-          setRemainingSeconds((prev) => {
-            if (prev <= 1) {
-              clearInterval(countdownInterval);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }, WARNING_TIME);
-
-      inactivityTimer = setTimeout(async () => {
-        await fetch('/api/doctor/logout', { method: 'POST' });
-        router.push('/doctor/login');
-      }, TOTAL_TIME);
-    };
-
     const handleActivity = () => {
       if (!showTimeoutWarning) resetTimers();
     };
@@ -144,15 +151,15 @@ export default function DoctorDashboardPage() {
     resetTimers();
 
     return () => {
-      clearTimeout(warningTimer);
-      clearTimeout(inactivityTimer);
-      clearInterval(countdownInterval);
+      if (warningTimerRef.current) clearTimeout(warningTimerRef.current);
+      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
       window.removeEventListener('mousemove', handleActivity);
       window.removeEventListener('keydown', handleActivity);
       window.removeEventListener('click', handleActivity);
       window.removeEventListener('scroll', handleActivity);
     };
-  }, [showTimeoutWarning, router]);
+  }, [showTimeoutWarning, resetTimers]);
 
   async function handleLogout() {
     await fetch('/api/doctor/logout', { method: 'POST' });
@@ -225,7 +232,13 @@ export default function DoctorDashboardPage() {
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => setShowTimeoutWarning(false)}
+                onClick={() => {
+                  // Call resetTimers() directly here rather than relying on the
+                  // window 'click' handler — that handler guards with
+                  // !showTimeoutWarning which is still true at the moment the
+                  // event fires due to React's async state batching.
+                  resetTimers();
+                }}
                 className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-4 rounded-sm"
               >
                 Extend Session

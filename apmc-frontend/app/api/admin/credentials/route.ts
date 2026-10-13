@@ -51,37 +51,5 @@ export async function POST(request: Request) {
   }
 }
 
-// PATCH: reset password (with optional explicit new password)
-export async function PATCH(request: Request) {
-  try {
-    const admin = await requireAdmin();
-    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    const body = await request.json();
-    const { officeId, newPassword: providedPassword } = body as {
-      officeId?: string;
-      newPassword?: string;
-    };
-
-    if (!officeId) {
-      return NextResponse.json({ error: 'officeId is required' }, { status: 400 });
-    }
-
-    const newPassword = providedPassword || generatePassword();
-
-    const { error } = await supabaseAdmin.rpc('reset_office_password', {
-      p_office_id: officeId,
-      p_new_password: newPassword,
-    });
-
-    if (error) {
-      console.error('Error resetting password:', error);
-      return NextResponse.json({ error: 'Failed to reset password' }, { status: 500 });
-    }
-
-    return NextResponse.json({ generated_password: newPassword });
-  } catch (err) {
-    console.error('Admin credentials PATCH error:', err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
-}
+// Note: only POST is exposed. A separate PATCH was removed as dead code —
+// the admin dashboard only calls POST for password resets.

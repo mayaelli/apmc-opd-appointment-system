@@ -429,7 +429,36 @@ Are you ready to return to the homepage?
 
 ## Version History
 
-### Version 1.1.0 - January 13, 2025 (Evening Update)
+### Version 1.2.0 - Staff Portal Addition
+
+**Added:**
+- Doctor, Admin, and OPD Head portals (auth, dashboards, queue management)
+- JWT-based session (`apmc_session` httpOnly cookie, 8-hour expiry)
+- `proxy.ts` route guard (Next.js 16 replacement for `middleware.ts`)
+- Supabase service-role client for server-only operations
+- pgcrypto-based password hashing for office credentials
+- Admin CRUD for offices, holidays, and credential resets
+- OPD Head read-only dashboard with appointment filters and print support
+- Dynamic office and holiday data for the public booking form
+
+**Security notes:**
+- `apmc_session` cookie is marked `Secure` only when `NODE_ENV=production`.
+  In development this is intentional (localhost is HTTP). **Staging environments
+  must set `NODE_ENV=production`** (or explicitly override cookie options) to
+  ensure the cookie is not transmitted in plaintext over HTTP.
+- The four pgcrypto RPCs (`verify_office_password`, `create_office_with_password`,
+  `hash_password`, `reset_office_password`) are restricted to the Supabase service
+  role via `REVOKE EXECUTE … FROM PUBLIC, anon, authenticated` in
+  `supabase/schema-staff.sql`. The public anon key cannot call these RPCs.
+- Admin and OPD Head credentials are compared with `timingSafeEqual` from
+  Node.js `crypto` to prevent timing-based username/password enumeration.
+
+**Security Status:** Development-Ready  
+**Production-Ready:** Pending (CAPTCHA, tighter RLS, Redis rate-limiting recommended)
+
+---
+
+
 
 **Added:**
 - Loading modal during appointment submission

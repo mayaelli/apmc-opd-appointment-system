@@ -104,6 +104,20 @@ LANGUAGE sql SECURITY DEFINER AS $$
 $$;
 
 -- ============================================================
+-- RPC Security: restrict all SECURITY DEFINER RPCs to the
+-- service role only.  Supabase grants EXECUTE to PUBLIC by
+-- default for SECURITY DEFINER functions, which would allow a
+-- browser holding the public anon key to call them directly
+-- and brute-force office passwords.
+-- ============================================================
+
+-- Revoke from PUBLIC first (covers all roles including anon and authenticated)
+REVOKE EXECUTE ON FUNCTION verify_office_password(text, text)       FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION create_office_with_password(text, text, text, integer) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION hash_password(text)                       FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION reset_office_password(uuid, text)         FROM PUBLIC, anon, authenticated;
+
+-- ============================================================
 -- Seed: Offices
 -- ============================================================
 
