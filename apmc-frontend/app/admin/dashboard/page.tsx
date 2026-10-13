@@ -8,14 +8,26 @@ type Tab = 'overview' | 'offices' | 'holidays' | 'credentials';
 
 type OfficeCategory = 'new-checkup' | 'follow-up' | 'philhealth-yakap';
 
+const ALL_CATEGORIES: { value: OfficeCategory; label: string }[] = [
+  { value: 'new-checkup', label: 'New Checkup / General Consultation' },
+  { value: 'follow-up', label: 'Follow-up' },
+  { value: 'philhealth-yakap', label: 'PhilHealth Yakap Clinic' },
+];
+
 interface Office {
   id: number;
   code: string;
   name: string;
-  category: OfficeCategory;
+  categories: OfficeCategory[];
   is_active: boolean;
   max_slots_per_interval: number;
 }
+
+const CATEGORY_LABELS: Record<OfficeCategory, string> = {
+  'new-checkup': 'General Consultation',
+  'follow-up': 'Follow-up',
+  'philhealth-yakap': 'PhilHealth Yakap',
+};
 
 interface Holiday {
   id: string;
@@ -31,11 +43,36 @@ interface Stats {
   byOffice: { name: string; count: number }[];
 }
 
-const CATEGORY_LABELS: Record<OfficeCategory, string> = {
-  'new-checkup': 'New Checkup / General Consultation',
-  'follow-up': 'Follow-up',
-  'philhealth-yakap': 'PhilHealth Yakap Clinic',
-};
+function CategoryCheckboxes({
+  selected,
+  onChange,
+}: {
+  selected: OfficeCategory[];
+  onChange: (v: OfficeCategory[]) => void;
+}) {
+  function toggle(val: OfficeCategory) {
+    if (selected.includes(val)) {
+      onChange(selected.filter((c) => c !== val));
+    } else {
+      onChange([...selected, val]);
+    }
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {ALL_CATEGORIES.map((cat) => (
+        <label key={cat.value} className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={selected.includes(cat.value)}
+            onChange={() => toggle(cat.value)}
+            className="accent-emerald-600 w-4 h-4"
+          />
+          <span className="text-sm text-black">{cat.label}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -49,20 +86,51 @@ export default function AdminDashboardPage() {
   const [editingOffice, setEditingOffice] = useState<Office | null>(null);
   const [generatedPassword, setGeneratedPassword] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [modalUsername, setModalUsername] = useState('');
+  const [copiedPass, setCopiedPass] = useState(false);
+  const [copiedBoth, setCopiedBoth] = useState(false);
 
   // Add office form
   const [newOfficeName, setNewOfficeName] = useState('');
   const [newOfficeCode, setNewOfficeCode] = useState('');
-  const [newOfficeCategory, setNewOfficeCategory] = useState<OfficeCategory>('new-checkup');
+  const [newOfficeCategories, setNewOfficeCategories] = useState<OfficeCategory[]>(['new-checkup']);
   const [newOfficeMaxSlots, setNewOfficeMaxSlots] = useState(2);
   const [officeFormError, setOfficeFormError] = useState('');
   const [officeFormLoading, setOfficeFormLoading] = useState(false);
 
+  // Auto-generate office code from name
+  function generateCodeFromName(name: string, existingCodes: string[]): string {
+    const year = new Date().getFullYear();
+    // Strip parenthetical suffixes like "(OB-GYNE)", strip special chars, split into words
+    const cleaned = name.replace(/\(.*?\)/g, '').replace(/[^a-zA-Z\s]/g, '').trim();
+    const words = cleaned.split(/\s+/).filter(Boolean);
+    // Take first letter of each significant word (skip short connectors)
+    const skip = new Set(['and', 'of', 'the', 'in', 'for', 'a', 'an', '&']);
+    const initials = words
+      .filter((w) => !skip.has(w.toLowerCase()))
+      .map((w) => w[0].toUpperCase())
+      .join('');
+    const base = initials || 'OFF';
+    // Find next available sequence number
+    let seq = 1;
+    while (existingCodes.includes(`${base}-${String(seq).padStart(3, '0')}-${year}`)) {
+      seq++;
+    }
+    return `${base}-${String(seq).padStart(3, '0')}-${year}`;
+  }
+
+  function handleNameChange(name: string) {
+    setNewOfficeName(name);
+    // Only auto-generate if user hasn't manually edited the code
+    const existingCodes = offices.map((o) => o.code);
+    setNewOfficeCode(generateCodeFromName(name, existingCodes));
+  }
+
   // Edit office form
   const [editName, setEditName] = useState('');
   const [editCode, setEditCode] = useState('');
-  const [editCategory, setEditCategory] = useState<OfficeCategory>('new-checkup');
+  const [editCategories, setEditCategories] = useState<OfficeCategory[]>(['new-checkup']);
   const [editMaxSlots, setEditMaxSlots] = useState(2);
   const [editFormError, setEditFormError] = useState('');
   const [editFormLoading, setEditFormLoading] = useState(false);
@@ -115,17 +183,18 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({
           code: newOfficeCode,
           name: newOfficeName,
-          category: newOfficeCategory,
+          categories: newOfficeCategories,
           max_slots_per_interval: newOfficeMaxSlots,
         }),
       });
       const data = await res.json();
       if (!res.ok) { setOfficeFormError(data.error || 'Failed to create office'); return; }
       setGeneratedPassword(data.generated_password);
+      setModalUsername(newOfficeCode);
       setShowAddOffice(false);
       setNewOfficeName('');
       setNewOfficeCode('');
-      setNewOfficeCategory('new-checkup');
+      setNewOfficeCategories(['new-checkup']);
       setNewOfficeMaxSlots(2);
       setShowPasswordModal(true);
       fetchOffices();
@@ -146,7 +215,7 @@ export default function AdminDashboardPage() {
         body: JSON.stringify({
           code: editCode,
           name: editName,
-          category: editCategory,
+          categories: editCategories,
           max_slots_per_interval: editMaxSlots,
         }),
       });
@@ -196,6 +265,7 @@ export default function AdminDashboardPage() {
     const data = await res.json();
     if (res.ok) {
       setGeneratedPassword(data.generated_password);
+      setModalUsername(office.code);
       setShowPasswordModal(true);
     }
   }
@@ -245,21 +315,71 @@ export default function AdminDashboardPage() {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] px-4">
           <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-8 border-t-[6px] border-emerald-600">
-            <h2 className="text-lg font-bold text-slate-900 mb-2">Generated Password</h2>
-            <p className="text-sm text-slate-600 mb-4">
-              Save this password — it won&apos;t be shown again.
+            <h2 className="text-lg font-bold text-slate-900 mb-1">Generated Password</h2>
+            <p className="text-sm text-slate-600 mb-5">
+              Save these credentials &mdash; the password won&apos;t be shown again.
             </p>
-            <div className="bg-slate-900 rounded-sm p-4 mb-4 flex items-center justify-between gap-3">
-              <code className="text-emerald-400 font-mono text-sm break-all">{generatedPassword}</code>
+
+            {/* Username row */}
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Username</p>
+              <div className="bg-slate-100 rounded-sm px-4 py-3 font-mono text-sm text-slate-900 select-all">
+                {modalUsername}
+              </div>
+            </div>
+
+            {/* Password row */}
+            <div className="mb-5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Password</p>
+              <div className="bg-slate-900 rounded-sm px-4 py-3 flex items-center justify-between gap-3">
+                <code className="text-emerald-400 font-mono text-sm break-all">
+                  {showPassword ? generatedPassword : '\u2022'.repeat(generatedPassword.length)}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="shrink-0 text-xs text-slate-300 hover:text-white px-2 py-1 rounded-sm border border-slate-600 hover:border-slate-400 transition-colors"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+
+            {/* Copy buttons */}
+            <div className="flex gap-3 mb-4">
               <button
-                onClick={() => { navigator.clipboard.writeText(generatedPassword); setCopied(true); }}
-                className="shrink-0 text-xs bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-sm"
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(generatedPassword);
+                  setCopiedPass(true);
+                  setTimeout(() => setCopiedPass(false), 2000);
+                }}
+                className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-sm transition-colors"
               >
-                {copied ? '✓ Copied' : 'Copy'}
+                {copiedPass ? '\u2713 Copied!' : 'Copy Password'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`Username: ${modalUsername}\nPassword: ${generatedPassword}`);
+                  setCopiedBoth(true);
+                  setTimeout(() => setCopiedBoth(false), 2000);
+                }}
+                className="flex-1 text-sm bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-sm transition-colors"
+              >
+                {copiedBoth ? '\u2713 Copied!' : 'Copy Both'}
               </button>
             </div>
+
             <button
-              onClick={() => { setShowPasswordModal(false); setCopied(false); }}
+              type="button"
+              onClick={() => {
+                setShowPasswordModal(false);
+                setCopiedPass(false);
+                setCopiedBoth(false);
+                setShowPassword(false);
+              }}
               className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-sm"
             >
               Done
@@ -281,7 +401,7 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditCode(e.target.value.toUpperCase())}
                   required
                   placeholder="e.g. GEN-CONSULT"
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none font-mono"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
                 />
               </div>
               <div>
@@ -291,20 +411,12 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditName(e.target.value)}
                   required
                   placeholder="e.g. General Consultation"
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Category</label>
-                <select
-                  value={editCategory}
-                  onChange={(e) => setEditCategory(e.target.value as OfficeCategory)}
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none bg-white"
-                >
-                  <option value="new-checkup">New Checkup / General Consultation</option>
-                  <option value="follow-up">Follow-up</option>
-                  <option value="philhealth-yakap">PhilHealth Yakap Clinic</option>
-                </select>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Categories <span className="text-red-500">*</span></label>
+                <CategoryCheckboxes selected={editCategories} onChange={setEditCategories} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Max Slots per Interval</label>
@@ -314,7 +426,7 @@ export default function AdminDashboardPage() {
                   max={20}
                   value={editMaxSlots}
                   onChange={(e) => setEditMaxSlots(Number(e.target.value))}
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                 />
               </div>
               {editFormError && <p className="text-red-600 text-sm">{editFormError}</p>}
@@ -424,36 +536,30 @@ export default function AdminDashboardPage() {
                 <h3 className="text-sm font-bold text-slate-900 mb-4">New Office</h3>
                 <form onSubmit={handleAddOffice} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Code</label>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Office Name</label>
+                    <input
+                      value={newOfficeName}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                      required
+                      placeholder="e.g. General Surgery"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">
+                      Code <span className="normal-case font-normal text-slate-400">(auto-generated, editable)</span>
+                    </label>
                     <input
                       value={newOfficeCode}
                       onChange={(e) => setNewOfficeCode(e.target.value.toUpperCase())}
                       required
-                      placeholder="e.g. GEN-CONSULT"
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none font-mono"
+                      placeholder="e.g. GS-001-2026"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Office Name</label>
-                    <input
-                      value={newOfficeName}
-                      onChange={(e) => setNewOfficeName(e.target.value)}
-                      required
-                      placeholder="e.g. General Consultation"
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Category</label>
-                    <select
-                      value={newOfficeCategory}
-                      onChange={(e) => setNewOfficeCategory(e.target.value as OfficeCategory)}
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none bg-white"
-                    >
-                      <option value="new-checkup">New Checkup / General Consultation</option>
-                      <option value="follow-up">Follow-up</option>
-                      <option value="philhealth-yakap">PhilHealth Yakap Clinic</option>
-                    </select>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-2">Categories <span className="text-red-500">*</span></label>
+                    <CategoryCheckboxes selected={newOfficeCategories} onChange={setNewOfficeCategories} />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Max Slots per Interval</label>
@@ -461,7 +567,7 @@ export default function AdminDashboardPage() {
                       type="number" min={1} max={20}
                       value={newOfficeMaxSlots}
                       onChange={(e) => setNewOfficeMaxSlots(Number(e.target.value))}
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                   {officeFormError && <p className="col-span-2 text-red-600 text-sm">{officeFormError}</p>}
@@ -495,7 +601,9 @@ export default function AdminDashboardPage() {
                     <tr key={office.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 font-mono text-xs text-slate-700 font-bold">{office.code}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{office.name}</td>
-                      <td className="px-4 py-3 text-slate-600 text-xs">{CATEGORY_LABELS[office.category] ?? office.category}</td>
+                      <td className="px-4 py-3 text-slate-600 text-xs">
+                        {(office.categories ?? []).map((c) => CATEGORY_LABELS[c] ?? c).join(', ')}
+                      </td>
                       <td className="px-4 py-3 text-slate-600">{office.max_slots_per_interval}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-sm text-xs font-bold ${
@@ -511,7 +619,7 @@ export default function AdminDashboardPage() {
                               setEditingOffice(office);
                               setEditCode(office.code);
                               setEditName(office.name);
-                              setEditCategory(office.category);
+                              setEditCategories((office.categories ?? []) as OfficeCategory[]);
                               setEditMaxSlots(office.max_slots_per_interval);
                               setEditFormError('');
                             }}

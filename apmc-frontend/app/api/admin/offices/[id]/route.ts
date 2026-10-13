@@ -22,16 +22,18 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, username, slot_capacity } = body as {
+    const { code, name, categories, max_slots_per_interval } = body as {
+      code?: string;
       name?: string;
-      username?: string;
-      slot_capacity?: number;
+      categories?: string[];
+      max_slots_per_interval?: number;
     };
 
     const updates: Record<string, unknown> = {};
+    if (code !== undefined) updates.code = code.trim().toUpperCase();
     if (name !== undefined) updates.name = name.trim();
-    if (username !== undefined) updates.username = username.trim().toLowerCase();
-    if (slot_capacity !== undefined) updates.slot_capacity = slot_capacity;
+    if (categories !== undefined) updates.categories = categories;
+    if (max_slots_per_interval !== undefined) updates.max_slots_per_interval = max_slots_per_interval;
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
