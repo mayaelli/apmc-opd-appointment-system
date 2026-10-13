@@ -15,31 +15,7 @@ interface SchedulePickerViewProps {
   onBack: () => void;
 }
 
-const ALL_OFFICES = [
-  'Obstetrics & Gynecology (OB-GYNE)',
-  'Pediatrics (Pedia)',
-  'General Surgery',
-  'Orthopedics (Ortho)',
-  'Family Medicine',
-  'Adult Medicine / Internal Medicine',
-  'Dermatology (Derma)',
-  'Ophthalmology (Optha / Eye Clinic)',
-  'ENT (Ear, Nose, Throat)',
-];
-
 const PHILHEALTH_OFFICE = 'PhilHealth Yakap Clinic';
-
-// Philippine public holidays as YYYY-MM-DD strings
-const HOLIDAYS = new Set<string>([
-  // 2025
-  '2025-01-01', '2025-04-09', '2025-04-17', '2025-04-18', '2025-04-19',
-  '2025-05-01', '2025-06-12', '2025-08-25', '2025-11-01', '2025-11-30',
-  '2025-12-08', '2025-12-25', '2025-12-30', '2025-12-31',
-  // 2026
-  '2026-01-01', '2026-04-02', '2026-04-03', '2026-04-09', '2026-05-01',
-  '2026-06-12', '2026-08-31', '2026-11-01', '2026-11-30', '2026-12-08',
-  '2026-12-25', '2026-12-30', '2026-12-31',
-]);
 
 // 18 slots: 08:00 – 16:30 in 30-min increments
 const TIME_SLOTS: string[] = [];
@@ -155,10 +131,33 @@ export default function SchedulePickerView({
   const [slotAvailability, setSlotAvailability] = useState<Record<string, number>>({});
   const [loadingSlots, setLoadingSlots] = useState(false);
 
+  // Dynamic offices and holidays from API
+  const [fetchedOffices, setFetchedOffices] = useState<string[]>([]);
+  const [holidaySet, setHolidaySet] = useState<Set<string>>(new Set());
+
+  // Fetch offices and holidays on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/offices').then((r) => r.json()),
+      fetch('/api/holidays').then((r) => r.json()),
+    ])
+      .then(([officesData, holidaysData]) => {
+        if (officesData && Array.isArray(officesData)) {
+          setFetchedOffices(officesData.map((o: { name: string }) => o.name));
+        }
+        if (holidaysData?.dates && Array.isArray(holidaysData.dates)) {
+          setHolidaySet(new Set<string>(holidaysData.dates));
+        }
+      })
+      .catch(() => {
+        // Fallback: keep empty state; calendar remains functional
+      });
+  }, []);
+
   const offices = useMemo(() => {
     if (category === 'philhealth-yakap') return [PHILHEALTH_OFFICE];
-    return ALL_OFFICES;
-  }, [category]);
+    return fetchedOffices;
+  }, [category, fetchedOffices]);
 
   // Fetch real slot availability from API when office and date are selected
   useEffect(() => {
@@ -234,7 +233,7 @@ export default function SchedulePickerView({
 
       const dateStr = toDateString(calendarYear, calendarMonth, d);
       const isPast = jsDate < today;
-      const isHoliday = HOLIDAYS.has(dateStr);
+      const isHoliday = holidaySet.has(dateStr);
 
       cells.push({ day: d, dateStr, isPast, isHoliday, isWeekend: false });
     }
@@ -251,7 +250,7 @@ export default function SchedulePickerView({
     }
 
     return weeks;
-  }, [calendarYear, calendarMonth, today]);
+  }, [calendarYear, calendarMonth, today, holidaySet]);
 
   const fullSlotIndices = useMemo(() => getFullSlotIndices(selectedDate), [selectedDate]);
 
