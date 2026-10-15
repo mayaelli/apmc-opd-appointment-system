@@ -80,6 +80,7 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [offices, setOffices] = useState<Office[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Modals
   const [showAddOffice, setShowAddOffice] = useState(false);
@@ -173,6 +174,10 @@ export default function AdminDashboardPage() {
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin/login');
+  }
+
+  function confirmLogout() {
+    setShowLogoutConfirm(true);
   }
 
   async function handleAddOffice(e: React.FormEvent) {
@@ -315,8 +320,46 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] px-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 text-red-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-900">Confirm Logout</h2>
+                <p className="text-sm text-slate-500">Are you sure you want to sign out?</p>
+              </div>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+              <p className="text-xs text-amber-800">
+                <strong>Note:</strong> You will be returned to the login page and your session will end.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleLogout}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+              >
+                Yes, Logout
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 border-2 border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-3 px-4 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-900 border-b-[3px] border-emerald-600 shadow-sm">
+      <header className="sticky top-0 z-50 bg-emerald-950 border-b border-emerald-900 shadow-lg backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -329,8 +372,8 @@ export default function AdminDashboardPage() {
             <span className="font-bold text-white text-sm">APMC OPD — Admin Dashboard</span>
           </div>
           <button
-            onClick={handleLogout}
-            className="text-sm text-slate-300 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-sm transition-colors"
+            onClick={confirmLogout}
+            className="text-sm text-slate-300 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-colors"
           >
             Logout
           </button>
@@ -340,14 +383,14 @@ export default function AdminDashboardPage() {
       {/* Office Credentials Modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] px-4">
-          <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-8 border-t-[6px] border-emerald-600">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-8 border-t-[6px] border-emerald-600">
             <h2 className="text-lg font-bold text-slate-900 mb-1">Office Credentials</h2>
             <p className="text-sm text-slate-500 mb-5">Manage login credentials for this office.</p>
 
             {/* Username row - always visible */}
             <div className="mb-5">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-1">Username</p>
-              <div className="bg-slate-100 rounded-sm px-4 py-3 font-mono text-sm text-slate-900 select-all">
+              <div className="bg-slate-100 rounded-xl px-4 py-3 font-mono text-sm text-slate-900 select-all">
                 {modalUsername}
               </div>
             </div>
@@ -356,17 +399,17 @@ export default function AdminDashboardPage() {
               /* No password generated yet — show the generate prompt */
               <>
                 {credentialsLoading ? (
-                  <div className="border border-slate-200 rounded-sm p-4 mb-5 text-center text-sm text-slate-500">
+                  <div className="border border-slate-200 rounded-xl p-4 mb-5 text-center text-sm text-slate-500">
                     Fetching current password…
                   </div>
                 ) : (
-                  <div className="border border-slate-200 rounded-sm p-4 mb-5">
+                  <div className="border border-slate-200 rounded-xl p-4 mb-5">
                     <p className="text-sm text-slate-600 mb-1">The current password is stored as a hash and cannot be retrieved.</p>
                     <p className="text-xs text-amber-700 font-semibold mb-3">⚠ Generating a new password will replace the existing one.</p>
                     <button
                       type="button"
                       onClick={handleGeneratePassword}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-sm text-sm"
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm"
                     >
                       Generate New Password
                     </button>
@@ -380,14 +423,14 @@ export default function AdminDashboardPage() {
                 {wasJustGenerated && (
                   <p className="text-xs text-slate-400 mb-2">Save this — it won&apos;t be shown again after you close.</p>
                 )}
-                <div className="bg-slate-900 rounded-sm px-4 py-3 flex items-center justify-between gap-3 mb-3">
+                <div className="bg-slate-900 rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-3">
                   <code className="text-emerald-400 font-mono text-sm break-all">
                     {showPassword ? generatedPassword : '\u2022'.repeat(generatedPassword.length)}
                   </code>
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="shrink-0 text-xs text-slate-300 hover:text-white px-2 py-1 rounded-sm border border-slate-600 hover:border-slate-400 transition-colors"
+                    className="shrink-0 text-xs text-slate-300 hover:text-white px-2 py-1 rounded-lg border border-slate-600 hover:border-slate-400 transition-colors"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -396,14 +439,14 @@ export default function AdminDashboardPage() {
                   <button
                     type="button"
                     onClick={() => { navigator.clipboard.writeText(generatedPassword); setCopiedPass(true); setTimeout(() => setCopiedPass(false), 2000); }}
-                    className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-sm transition-colors"
+                    className="flex-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 rounded-xl transition-colors"
                   >
                     {copiedPass ? '\u2713 Copied!' : 'Copy Password'}
                   </button>
                   <button
                     type="button"
                     onClick={() => { navigator.clipboard.writeText(`Username: ${modalUsername}\nPassword: ${generatedPassword}`); setCopiedBoth(true); setTimeout(() => setCopiedBoth(false), 2000); }}
-                    className="flex-1 text-sm bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-sm transition-colors"
+                    className="flex-1 text-sm bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl transition-colors"
                   >
                     {copiedBoth ? '\u2713 Copied!' : 'Copy Both'}
                   </button>
@@ -414,7 +457,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => { setShowPasswordModal(false); setCopiedPass(false); setCopiedBoth(false); setShowPassword(false); setGeneratedPassword(''); setCredentialOffice(null); setWasJustGenerated(false); }}
-              className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-sm"
+              className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-xl"
             >
               Done
             </button>
@@ -425,7 +468,7 @@ export default function AdminDashboardPage() {
       {/* Edit Office Modal */}
       {editingOffice && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-sm shadow-2xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <h2 className="text-lg font-bold text-slate-900 mb-4">Edit Office</h2>
             <form onSubmit={handleEditOffice} className="space-y-4">
               <div>
@@ -435,7 +478,7 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditCode(e.target.value.toUpperCase())}
                   required
                   placeholder="e.g. GEN-CONSULT"
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
                 />
               </div>
               <div>
@@ -445,7 +488,7 @@ export default function AdminDashboardPage() {
                   onChange={(e) => setEditName(e.target.value)}
                   required
                   placeholder="e.g. General Consultation"
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                 />
               </div>
               <div>
@@ -460,7 +503,7 @@ export default function AdminDashboardPage() {
                   max={20}
                   value={editMaxSlots}
                   onChange={(e) => setEditMaxSlots(Number(e.target.value))}
-                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
+                  className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                 />
               </div>
               {editFormError && <p className="text-red-600 text-sm">{editFormError}</p>}
@@ -468,14 +511,14 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={editFormLoading}
-                  className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-sm"
+                  className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl"
                 >
                   {editFormLoading ? 'Saving…' : 'Save Changes'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingOffice(null)}
-                  className="flex-1 border-2 border-slate-300 text-slate-700 font-bold py-2.5 rounded-sm"
+                  className="flex-1 border-2 border-slate-300 text-slate-700 font-bold py-2.5 rounded-xl"
                 >
                   Cancel
                 </button>
@@ -513,7 +556,7 @@ export default function AdminDashboardPage() {
                 { label: 'Completed (Done)', value: stats?.byStatus.done ?? '—' },
                 { label: 'Active Offices', value: stats?.activeOffices ?? '—' },
               ].map((card) => (
-                <div key={card.label} className="bg-white border border-slate-200 rounded-sm p-6">
+                <div key={card.label} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                   <div className="text-3xl font-black text-emerald-600 mb-1">{card.value}</div>
                   <div className="text-xs text-slate-500 uppercase tracking-widest font-semibold">{card.label}</div>
                 </div>
@@ -522,7 +565,7 @@ export default function AdminDashboardPage() {
 
             {/* Bar chart */}
             {stats && stats.byOffice.length > 0 && (
-              <div className="bg-white border border-slate-200 rounded-sm p-6">
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                 <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-4">
                   Appointments by Office (All Time)
                 </h3>
@@ -533,7 +576,7 @@ export default function AdminDashboardPage() {
                       <div key={o.name} className="flex flex-col items-center gap-1 min-w-[40px]">
                         <span className="text-xs text-slate-700 font-bold">{o.count}</span>
                         <div
-                          className="w-8 bg-emerald-600 rounded-t-sm transition-all"
+                          className="w-8 bg-emerald-600 rounded-t-lg transition-all"
                           style={{ height: `${Math.max(pct, 2)}%` }}
                           title={`${o.name}: ${o.count}`}
                         />
@@ -559,14 +602,14 @@ export default function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Offices</h2>
               <button
                 onClick={() => setShowAddOffice(!showAddOffice)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold px-4 py-2 rounded-sm uppercase tracking-wide"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold px-4 py-2 rounded-xl uppercase tracking-wide"
               >
                 + Add Office
               </button>
             </div>
 
             {showAddOffice && (
-              <div className="bg-white border border-slate-200 rounded-sm p-5">
+              <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 mb-4">New Office</h3>
                 <form onSubmit={handleAddOffice} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -576,7 +619,7 @@ export default function AdminDashboardPage() {
                       onChange={(e) => handleNameChange(e.target.value)}
                       required
                       placeholder="e.g. General Surgery"
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                   <div>
@@ -588,7 +631,7 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setNewOfficeCode(e.target.value.toUpperCase())}
                       required
                       placeholder="e.g. GS-001-2026"
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none font-mono"
                     />
                   </div>
                   <div className="col-span-2">
@@ -601,7 +644,7 @@ export default function AdminDashboardPage() {
                       type="number" min={1} max={20}
                       value={newOfficeMaxSlots}
                       onChange={(e) => setNewOfficeMaxSlots(Number(e.target.value))}
-                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
+                      className="w-full border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm text-black placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                   {officeFormError && <p className="col-span-2 text-red-600 text-sm">{officeFormError}</p>}
@@ -609,11 +652,11 @@ export default function AdminDashboardPage() {
                     <button
                       type="submit"
                       disabled={officeFormLoading}
-                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-6 rounded-sm text-sm"
+                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-6 rounded-xl text-sm"
                     >
                       {officeFormLoading ? 'Creating…' : 'Create Office'}
                     </button>
-                    <button type="button" onClick={() => setShowAddOffice(false)} className="border-2 border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-sm text-sm">
+                    <button type="button" onClick={() => setShowAddOffice(false)} className="border-2 border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-sm">
                       Cancel
                     </button>
                   </div>
@@ -621,7 +664,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            <div className="bg-white border border-slate-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-200">
@@ -640,7 +683,7 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-slate-600">{office.max_slots_per_interval}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded-sm text-xs font-bold ${
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
                           office.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
                         }`}>
                           {office.is_active ? 'Active' : 'Inactive'}
@@ -657,13 +700,13 @@ export default function AdminDashboardPage() {
                               setEditMaxSlots(office.max_slots_per_interval);
                               setEditFormError('');
                             }}
-                            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-sm"
+                            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded-lg"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleToggleOffice(office)}
-                            className={`text-xs font-bold px-2.5 py-1 rounded-sm ${
+                            className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
                               office.is_active
                                 ? 'bg-red-100 hover:bg-red-200 text-red-700'
                                 : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
@@ -686,7 +729,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-5">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Holidays</h2>
 
-            <div className="bg-white border border-slate-200 rounded-sm p-5">
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
               <h3 className="text-sm font-bold text-slate-900 mb-3">Add Holiday</h3>
               <form onSubmit={handleAddHoliday} className="flex flex-wrap gap-3 items-end">
                 <div>
@@ -696,7 +739,7 @@ export default function AdminDashboardPage() {
                     value={newHolidayDate}
                     onChange={(e) => setNewHolidayDate(e.target.value)}
                     required
-                    className="border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none"
+                    className="border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm focus:outline-none"
                   />
                 </div>
                 <div>
@@ -706,12 +749,12 @@ export default function AdminDashboardPage() {
                     onChange={(e) => setNewHolidayLabel(e.target.value)}
                     required
                     placeholder="e.g. Independence Day"
-                    className="border-2 border-slate-300 focus:border-emerald-600 rounded-sm px-3 py-2 text-sm focus:outline-none w-64"
+                    className="border-2 border-slate-300 focus:border-emerald-600 rounded-xl px-3 py-2 text-sm focus:outline-none w-64"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-4 rounded-sm text-sm"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-4 rounded-xl text-sm"
                 >
                   Add
                 </button>
@@ -720,7 +763,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {Object.entries(holidaysByMonth).sort().map(([month, items]) => (
-              <div key={month} className="bg-white border border-slate-200 rounded-sm overflow-hidden">
+              <div key={month} className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                 <div className="bg-slate-100 border-b border-slate-200 px-4 py-2">
                   <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest">
                     {new Intl.DateTimeFormat('en-PH', { year: 'numeric', month: 'long' }).format(new Date(month + '-01'))}
@@ -751,7 +794,7 @@ export default function AdminDashboardPage() {
         {activeTab === 'credentials' && (
           <div className="space-y-4">
             <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Office Credentials</h2>
-            <div className="bg-white border border-slate-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-100 border-b border-slate-200">
@@ -766,7 +809,7 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3 font-mono text-xs text-slate-700 font-bold">{office.code}</td>
                       <td className="px-4 py-3 font-medium text-slate-900">{office.name}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-block px-2 py-0.5 rounded-sm text-xs font-bold ${
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
                           office.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
                         }`}>
                           {office.is_active ? 'Active' : 'Inactive'}
@@ -775,7 +818,7 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleOpenCredentials(office)}
-                          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-sm"
+                          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-lg"
                         >
                           Credentials
                         </button>
