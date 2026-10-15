@@ -1,0 +1,12 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "issue": "Profile menu click-outside ref mismatch",
+      "description": "profileMenuRef is typed as HTMLDivElement and attached to a wrapping div, but the button is inside that div. Clicking a child element of the button (avatar, text, chevron) may not toggle the menu reliably because the click-outside handler's contains check returns true for elements inside the ref'd div.",
+      "action": "Move the ref to the button itself and check if (!buttonRef.current?.contains(e.target) && !dropdownRef.current?.contains(e.target)), or ensure the button's onClick uses e.currentTarget to always capture the toggle event.",
+      "confidence": "likely"
+    }
+  ],
+  "reviewDoc": "c:\\Users\\Hamah\\Downloads\\WEB-SYSTEMS\\OPD-System\\apmc-frontend\\.agents\\tasks\\admin-overhaul-review.md"
+}
