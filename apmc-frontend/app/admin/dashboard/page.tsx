@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
@@ -81,6 +81,8 @@ export default function AdminDashboardPage() {
   const [offices, setOffices] = useState<Office[]>([]);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // Modals
   const [showAddOffice, setShowAddOffice] = useState(false);
@@ -170,6 +172,19 @@ export default function AdminDashboardPage() {
     fetchOffices();
     fetchHolidays();
   }, [fetchStats, fetchOffices, fetchHolidays]);
+
+  // Profile menu click-outside handler
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    if (showProfileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showProfileMenu]);
 
   async function handleLogout() {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -360,7 +375,7 @@ export default function AdminDashboardPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-emerald-950 border-b border-emerald-900 shadow-lg backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
               src="/Amai_Pakpak_Medical_Center_seal_upscayl_4x_upscayl-standard-4x.png"
@@ -369,14 +384,89 @@ export default function AdminDashboardPage() {
               height={32}
               className="object-contain"
             />
-            <span className="font-bold text-white text-sm">APMC OPD — Admin Dashboard</span>
+            <span className="font-bold text-white text-sm tracking-wide">APMC OPD</span>
+            <div className="hidden sm:block w-px h-5 bg-emerald-700" />
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/60 text-emerald-200 border border-emerald-700/50">
+              System Administrator
+            </span>
           </div>
-          <button
-            onClick={confirmLogout}
-            className="text-sm text-slate-300 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
+          <div className="relative" ref={profileMenuRef}>
+            <button
+              onClick={() => setShowProfileMenu(prev => !prev)}
+              className="flex items-center gap-2.5 group"
+              aria-label="Profile menu"
+            >
+              {/* Avatar circle with initials */}
+              <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                AD
+              </div>
+              {/* Text info */}
+              <div className="block text-left">
+                <div className="text-xs font-semibold text-white truncate max-w-[120px] sm:max-w-none leading-tight">
+                  System Admin
+                </div>
+                <div className="text-xs text-emerald-400 leading-tight">Control Panel</div>
+              </div>
+              {/* Chevron */}
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"
+                className={`w-4 h-4 text-emerald-400 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            {/* Dropdown menu */}
+            {showProfileMenu && (
+              <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden z-[200]">
+                {/* Header section */}
+                <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      AD
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-slate-900 truncate">
+                        System Administrator
+                      </div>
+                      <div className="text-xs text-slate-500">Administrative Portal</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Menu items */}
+                <div className="py-1">
+                  <button
+                    onClick={() => setShowProfileMenu(false)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-slate-400">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Admin Profile
+                  </button>
+                  <button
+                    onClick={() => setShowProfileMenu(false)}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-slate-400">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    System Settings
+                  </button>
+                  {/* Divider */}
+                  <div className="border-t border-slate-100 my-1" />
+                  <button
+                    onClick={() => { setShowProfileMenu(false); confirmLogout(); }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -409,7 +499,7 @@ export default function AdminDashboardPage() {
                     <button
                       type="button"
                       onClick={handleGeneratePassword}
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm"
+                      className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl text-sm"
                     >
                       Generate New Password
                     </button>
@@ -457,7 +547,7 @@ export default function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => { setShowPasswordModal(false); setCopiedPass(false); setCopiedBoth(false); setShowPassword(false); setGeneratedPassword(''); setCredentialOffice(null); setWasJustGenerated(false); }}
-              className="w-full bg-slate-900 hover:bg-slate-700 text-white font-bold py-3 rounded-xl"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl"
             >
               Done
             </button>
@@ -511,14 +601,14 @@ export default function AdminDashboardPage() {
                 <button
                   type="submit"
                   disabled={editFormLoading}
-                  className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2.5 rounded-xl"
+                  className="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 rounded-xl"
                 >
                   {editFormLoading ? 'Saving…' : 'Save Changes'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingOffice(null)}
-                  className="flex-1 border-2 border-slate-300 text-slate-700 font-bold py-2.5 rounded-xl"
+                  className="flex-1 border-2 border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 rounded-xl"
                 >
                   Cancel
                 </button>
@@ -528,7 +618,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-[1400px] mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="border-b-2 border-slate-200 mb-6 flex gap-0">
           {tabs.map((tab) => (
@@ -602,7 +692,7 @@ export default function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-slate-900 uppercase tracking-widest">Offices</h2>
               <button
                 onClick={() => setShowAddOffice(!showAddOffice)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold px-4 py-2 rounded-xl uppercase tracking-wide"
+                className="bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-bold px-4 py-2 rounded-xl uppercase tracking-wide"
               >
                 + Add Office
               </button>
@@ -652,11 +742,11 @@ export default function AdminDashboardPage() {
                     <button
                       type="submit"
                       disabled={officeFormLoading}
-                      className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-6 rounded-xl text-sm"
+                      className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm"
                     >
                       {officeFormLoading ? 'Creating…' : 'Create Office'}
                     </button>
-                    <button type="button" onClick={() => setShowAddOffice(false)} className="border-2 border-slate-300 text-slate-700 font-bold py-2 px-4 rounded-xl text-sm">
+                    <button type="button" onClick={() => setShowAddOffice(false)} className="border-2 border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-xl text-sm">
                       Cancel
                     </button>
                   </div>
@@ -754,7 +844,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <button
                   type="submit"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 px-4 rounded-xl text-sm"
+                  className="bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm"
                 >
                   Add
                 </button>
